@@ -9,3 +9,12 @@ data/flores200_dataset: data/flores200_dataset.tar.gz
 	tar -xvf data/flores200_dataset.tar.gz -C data/
 
 
+.venv39:
+	python3.9 -m venv .venv39
+
+
+data/csv/flores_dev_fr_en.csv:
+	mkdir -p data/csv/
+	python scripts/makeparallelcsv.py data/flores200_dataset/dev/fra_Latn.dev data/flores200_dataset/dev/eng_Latn.dev --output-file data/csv/flores_dev_fr_en.csv
+
+
