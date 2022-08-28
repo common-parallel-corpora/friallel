@@ -15,8 +15,17 @@ def create_dataset_collection(args):
 
 
 def generate_dataset_sentences(args):
-    file_list = [p for p in Path(args.dataset_root_dir).iterdir() if p.is_file()]
+    file_list = [
+        p for p in Path(args.dataset_root_dir).iterdir() 
+        if p.is_file() and \
+            (
+                (not args.langs) or \
+                p.stem in args.langs
+            )
+    ]
+
     lang_list = [p.stem for p in file_list]
+
     for sentence_ix, parallel_line in enumerate(parallel_corpus_utils.generate_parallel_lines(file_list)):
         sentence_doc_data = {
             "tranlations": []
@@ -49,6 +58,8 @@ def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--dataset-root-dir", required=True)
     parser.add_argument("--dataset-name", required=True)
+    parser.add_argument("--langs", nargs="*")
+    
     return parser.parse_args()
 
 

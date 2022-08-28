@@ -21,4 +21,5 @@ data/csv/flores_dev_fr_en.csv:
 load-flores-dev:
 	python scripts/load_dataset.py  \
 		--dataset-root-dir data/flores200_dataset/dev \
-		--dataset-name flores-dev
+		--dataset-name flores-dev \
+		--langs eng_Latn fra_Latn
