@@ -23,3 +23,9 @@ load-flores-dev:
 		--dataset-root-dir data/flores200_dataset/dev \
 		--dataset-name flores-dev \
 		--langs eng_Latn fra_Latn
+
+load-flores-dev-test:
+	python scripts/load_dataset.py  \
+		--dataset-root-dir data/flores200_dataset/devtest \
+		--dataset-name flores-devtest \
+		--langs eng_Latn fra_Latn
