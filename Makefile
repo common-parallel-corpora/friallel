@@ -29,3 +29,9 @@ load-flores-dev-test:
 		--dataset-root-dir data/flores200_dataset/devtest \
 		--dataset-name flores-devtest \
 		--langs eng_Latn fra_Latn
+
+
+create-translation-tasks:
+	python scripts/create_translation_tasks.py  \
+		--dataset-names flores-dev flores-devtest \
+		--target-lang nqo_Nkoo
