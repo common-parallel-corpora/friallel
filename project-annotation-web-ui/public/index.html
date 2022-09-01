@@ -86,6 +86,7 @@
       // Import the functions you need from the SDKs you need
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
       import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
+      import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -106,16 +107,34 @@
       // Initialize Firebase
       const app = initializeApp(firebaseConfig);
       const analytics = getAnalytics(app);
+      const db = getFirestore(app);
+
+
+      const docRef = doc(db, "dataset-flores-dev", "0000000000");
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        console.log("Document data:", docSnap.data());
+      } else {
+        // doc.data() will be undefined in this case
+        console.log("No such document!");
+      }
     </script>
   </head>
   <body>
     <button id="pId" class="test">FS Annotation Web UI</button>
     <div class="container">
       <div class="row">
-        <div class="col-sm">One of three columns</div>
+        <div class="col-sm">One of three columns Nouvelle fonctionalite</div>
         <div class="col-sm">One of three columns</div>
         <div class="col-sm">One of three columns</div>
       </div>
     </div>
+
+    <script>
+      
+      
+      
+    </script>
   </body>
 </html>
