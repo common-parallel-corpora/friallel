@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>FS Annotation Web UI</title>
-
     <!-- update the version number as needed -->
     <script defer src="/__/firebase/9.9.3/firebase-app-compat.js"></script>
     <!-- include only the Firebase features as you need -->
@@ -112,23 +111,46 @@
 
       const docRef = doc(db, "dataset-flores-dev", "0000000000");
       const docSnap = await getDoc(docRef);
+      const doc_data = docSnap.data();
+      console.log(doc_data)
 
-      if (docSnap.exists()) {
-        console.log("Document data:", docSnap.data());
-      } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
-      }
+      // TODO: change this to tranSlations
+      doc_data.tranlations.forEach(translation => {
+        const selector = "#" + `txt-${translation.lang}`;
+        console.log("Selector", selector);
+        console.log("Value", translation.translation);
+        $(selector).text(
+          translation.translation
+        );
+      });
     </script>
   </head>
   <body>
     <!-- 
     <button id="pId" class="test">FS Annotation Web UI</button>
     <div class="container">
+
       <div class="row">
-        <div class="col-sm">One of three columns Nouvelle fonctionalite</div>
-        <div class="col-sm">One of three columns</div>
-        <div class="col-sm">One of three columns</div>
+        <div class="h1">Text in English</div>
+        <div class="col-sm">
+          <div id="txt-eng_Latn"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="h1">Text en Francais</div>
+        <div class="col-sm">
+          <div id="txt-fra_Latn"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="h1">ߣߞߏ ߞߟߏߜߍ</div>
+        <div class="col-sm">
+          <textarea id="txt-nqo_Nkoo">
+
+          </textarea>
+        </div>
       </div>
     </div>
 
