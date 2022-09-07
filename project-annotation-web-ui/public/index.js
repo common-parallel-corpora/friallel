@@ -1,8 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -24,6 +25,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const firestore = getFirestore(app);
+
+console.log("before enableIndexedDbPersistence");
+enableIndexedDbPersistence(firestore)
+  .catch((err) => {
+      if (err.code == 'failed-precondition') {
+        console.log("Unable to enable offline db");
+          // Multiple tabs open, persistence can only be enabled
+          // in one tab at a a time.
+          // ...
+      } else if (err.code == 'unimplemented') {
+          // The current browser does not support all of the
+          // features required to enable persistence
+          // ...
+          console.log("offline db not implemented");
+      }
+  });
 
 
 const docRef = doc(firestore, "dataset-flores-dev", "0000000000");
@@ -54,3 +71,4 @@ onValue(connectedRef, (snap) => {
     $("#connection-state").addClass("synchro-light-offline");
   }
 });
+
