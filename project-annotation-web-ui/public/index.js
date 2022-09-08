@@ -43,6 +43,9 @@ enableIndexedDbPersistence(firestore)
   });
 
 
+
+// fake_user_01
+
 const docRef = doc(firestore, "dataset-flores-dev", "0000000000");
 const docSnap = await getDoc(docRef);
 const doc_data = docSnap.data();
