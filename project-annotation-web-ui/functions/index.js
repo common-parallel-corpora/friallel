@@ -1,6 +1,9 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const {getFirestore} = require("firebase-admin/firestore");
+
 admin.initializeApp();
+const db = getFirestore();
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -27,3 +30,16 @@ exports.setActiveTranslatorStatus = functions.firestore.document("/users/{docume
       // Setting an 'uppercase' field in Firestore document returns a Promise.
       return snap.ref.set(dataDict, {merge: true});
     });
+
+/** unassign tasks that have been assigned for too long */
+function unassignExpiredAssignments() {
+  db.collection("translation-tasks").where("status", "==", "assigned").get().then((assignedTasks)=>{
+    console.log("assigned tasks", assignedTasks);
+  });
+}
+
+exports.taskAssignmentAgent = functions.pubsub.schedule("every 15 minutes").onRun((context) => {
+  console.log("This will be run every 15 minutes!");
+  unassignExpiredAssignments();
+  return null;
+});
