@@ -5,6 +5,10 @@ const {getFirestore} = require("firebase-admin/firestore");
 admin.initializeApp();
 const db = getFirestore();
 
+const translationTaskCollectionName = "tanslation-tasks";
+const maxAssignmentSeconds = 3 * 24 * 60 * 60;
+// ${process.env.MAX_TASK_ASSIGNMENT_SECONDS}
+
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
@@ -33,13 +37,27 @@ exports.setActiveTranslatorStatus = functions.firestore.document("/users/{docume
 
 /** unassign tasks that have been assigned for too long */
 function unassignExpiredAssignments() {
-  db.collection("translation-tasks").where("status", "==", "assigned").get().then((assignedTasks)=>{
-    console.log("assigned tasks", assignedTasks);
+  const maxAssignedDate = new Date(
+      new Date().getTime() - (maxAssignmentSeconds * 1000)
+  );
+
+  db.collection(translationTaskCollectionName).where(
+      "status", "==", "assigned"
+  ).where(
+      "assigned_date", "<", maxAssignedDate
+  ).get().then((assignedTasks)=>{
+    assignedTasks.docs.forEach((translationTask)=>{
+      translationTask.ref.set({
+        "status": "unassigned",
+        "assignee_id": "",
+      }, {merge: true}).then(()=>{
+        console.log("Unassigned expired task assignment # ", translationTask.id);
+      });
+    });
   });
 }
 
 exports.taskAssignmentAgent = functions.pubsub.schedule("every 15 minutes").onRun((context) => {
-  console.log("This will be run every 15 minutes!");
   unassignExpiredAssignments();
   return null;
 });
