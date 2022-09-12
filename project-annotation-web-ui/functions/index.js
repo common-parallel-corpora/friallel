@@ -2,12 +2,17 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const {getFirestore} = require("firebase-admin/firestore");
 
+
 admin.initializeApp();
 const db = getFirestore();
 
 const translationTaskCollectionName = "tanslation-tasks";
-const maxAssignmentSeconds = 3 * 24 * 60 * 60;
-// ${process.env.MAX_TASK_ASSIGNMENT_SECONDS}
+
+// Retrieving Data in Configuration File .env
+const maxAssignmentHours = process.env.MAX_TASK_ASSIGNMENT_AGE_HOURS;
+const maxAssignmentSeconds = maxAssignmentHours * 60 * 60;
+const userBucketMaxSize = process.env.USER_BUCKET_MAX_SIZE;
+
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -58,6 +63,10 @@ function unassignExpiredAssignments() {
 }
 
 exports.taskAssignmentAgent = functions.pubsub.schedule("every 15 minutes").onRun((context) => {
+  console.log("Task Assignment Max Age in HOURS : ", maxAssignmentHours);
+  console.log("User Bucket Max Size : ", userBucketMaxSize);
+  console.log(context);
+
   unassignExpiredAssignments();
   return null;
 });
