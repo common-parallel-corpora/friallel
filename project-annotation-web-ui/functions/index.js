@@ -44,12 +44,12 @@ exports.setActiveTranslatorStatus = functions.firestore.document("/users/{docume
  * unassign tasks that have been assigned for too long
  * @return {Promise} the unassignment task
  */
-function unassignExpiredAssignments() {
+async function unassignExpiredAssignments() {
   const maxAssignedDate = new Date(
       new Date().getTime() - (maxAssignmentSeconds * 1000)
   );
 
-  return db.collection(translationTaskCollectionName).where(
+  await db.collection(translationTaskCollectionName).where(
       "status", "==", "assigned"
   ).where(
       "assigned_date", "<", maxAssignedDate
@@ -57,7 +57,7 @@ function unassignExpiredAssignments() {
     assignedTasks.docs.forEach((translationTask)=>{
       translationTask.ref.set({
         "status": "unassigned",
-        "assignee_id": "",
+        "assignee_id": ""
       }, {merge: true}).then(()=>{
         console.log("Unassigned expired task assignment # ", translationTask.id);
       });
@@ -86,9 +86,23 @@ function unassignExpiredAssignments() {
  * @param {string} userID the user id
  * @return {set} the set of translated sentences
  */
-function getUserTranslatedSentences(userID) {
+async function getUserTranslatedSentences(userID) {
   console.log(userID);
-  return new Set(["dataset-flores-dev/0000000002"]);
+  const sentenceReferences = new Set();
+
+  await db.collection(translationTaskCollectionName).where(
+      "status", "in", ["assigned", "completed"]
+  ).where(
+      "assignee_id", "==", userID
+  ).get().then((userPriorTasks)=>{
+    userPriorTasks.forEach((task) => {
+      const taskSentenceReference = `${task.get("collection_id")}/${task.get("document_id")}`;
+      sentenceReferences.add(taskSentenceReference);
+      console.log(`Added prior sentence# ${taskSentenceReference} for user user#${userID}`);
+    });
+  });
+
+  return sentenceReferences;
 }
 
 
@@ -97,14 +111,15 @@ function getUserTranslatedSentences(userID) {
  * @param {string} userID the user to assign tasks to
  * @param {number} taskCountToBeAssigned the number of tasks to be assigned
  */
-function assignTaskToUser(userID, taskCountToBeAssigned) {
-  const excludedSentences = getUserTranslatedSentences(userID);
-  db.collection(translationTaskCollectionName).where(
+async function assignTaskToUser(userID, taskCountToBeAssigned) {
+  const excludedSentences = await getUserTranslatedSentences(userID);
+  await db.collection(translationTaskCollectionName).where(
       "status", "==", "unassigned"
   ).orderBy(
       "priority", "asc"
   ).limit(userBucketMaxSize * 2)
-      .get().then((unassignedTasks)=>{
+      .get()
+      .then((unassignedTasks)=>{
         let assignedTaskCount = 0;
         unassignedTasks.docs.forEach((unassignedTask)=>{
           const taskSentenceReference = `${unassignedTask.get("collection_id")}/${unassignedTask.get("document_id")}`;
@@ -113,13 +128,16 @@ function assignTaskToUser(userID, taskCountToBeAssigned) {
           } else if (excludedSentences.has(taskSentenceReference)) {
             console.log(`Task assignment skipping task#${unassignedTask.id} for user`);
           } else {
-            unassignedTask.ref.set({
-              "status": "assigned",
-              "assignee_id": userID,
-              "assigned_date": new Date(),
-            }, {merge: true}).then(()=>{
-              console.log(`Assigned Task# ${unassignedTask.id} to User#${userID}`);
-            });
+            console.log(`Awaiting task assignment for task#${unassignedTask.id}`);
+            (async () => {
+              await unassignedTask.ref.set({
+                "status": "assigned",
+                "assignee_id": userID,
+                "assigned_date": new Date()
+              }, {merge: true}).then(()=>{
+                console.log(`Assigned Task# ${unassignedTask.id} to User#${userID}`);
+              });
+            })();
             assignedTaskCount += 1;
             excludedSentences.add(
                 taskSentenceReference
@@ -133,9 +151,9 @@ function assignTaskToUser(userID, taskCountToBeAssigned) {
  * Assign tasks to all active translators. increase user workloads to their max
  * @return {Promise} the workload assignment task
  */
-function updateUserWorkload() {
+async function updateUserWorkload() {
   // Retrieve All actives users with buckets not full
-  return db.collection(userCollectionName).where(
+  await db.collection(userCollectionName).where(
       "isActiveTranslator", "==", true
   ).get().then((activeUsers)=>{
     // For each user, fill the bucket by getting the next available tasks
@@ -148,31 +166,28 @@ function updateUserWorkload() {
           "status", "==", "assigned"
       ).where(
           "assignee_id", "==", activeUser.id
-      ).get().then((assignedTasks)=>{
+      ).get().then(async (assignedTasks)=>{
         // console.log(userID, " has these tasks assigned : ", assignedTasks.size);
         userWorkLoadSize = assignedTasks.size;
         console.log(activeUser.id, " has the current load size : ", userWorkLoadSize);
         if (userWorkLoadSize < userBucketMaxSize) {
           console.log("UserWorkLoad ", userWorkLoadSize, " is under the max :", userBucketMaxSize);
           const workLoadToAssign = userBucketMaxSize - userWorkLoadSize;
-          assignTaskToUser(activeUser.id, workLoadToAssign);
+          await assignTaskToUser(activeUser.id, workLoadToAssign);
         }
       });
     });
   });
 }
 
-exports.taskAssignmentAgent = functions.pubsub.schedule("every 15 minutes").onRun((context) => {
+exports.taskAssignmentAgent = functions.pubsub.schedule("every 1 minutes").onRun(async (context) => {
   console.log("ENV VARIABLE : MAX AGE TASK in HOURS : ", maxAssignmentHours);
   console.log("ENV VARIABLE : USER BUCKET SIZE MAX : ", userBucketMaxSize);
   console.log(context);
 
   // Step 1: Unassign expired tasks
-  const promise1 = unassignExpiredAssignments();
+  await unassignExpiredAssignments();
 
   // Step 2: Assign Tasks to fill user buckets
-  const promise2 = updateUserWorkload();
-  return Promise.all([
-    promise1, promise2,
-  ]);
+  await updateUserWorkload();
 });
