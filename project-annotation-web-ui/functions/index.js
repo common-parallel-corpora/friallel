@@ -2,8 +2,6 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const {getFirestore} = require("firebase-admin/firestore");
 
-
-
 admin.initializeApp();
 const db = getFirestore();
 
@@ -42,13 +40,16 @@ exports.setActiveTranslatorStatus = functions.firestore.document("/users/{docume
       return snap.ref.set(dataDict, {merge: true});
     });
 
-/** unassign tasks that have been assigned for too long */
+/**
+ * unassign tasks that have been assigned for too long
+ * @return {Promise} the unassignment task
+ */
 function unassignExpiredAssignments() {
   const maxAssignedDate = new Date(
       new Date().getTime() - (maxAssignmentSeconds * 1000)
   );
 
-  db.collection(translationTaskCollectionName).where(
+  return db.collection(translationTaskCollectionName).where(
       "status", "==", "assigned"
   ).where(
       "assigned_date", "<", maxAssignedDate
@@ -64,77 +65,94 @@ function unassignExpiredAssignments() {
   });
 }
 
-/* Get the user workload size */
-// eslint-disable-next-line no-unused-vars
-function getUserWorkloadSize(userID){
-  var workLoad = 0;
-  db.collection(
-    translationTaskCollectionName
-  ).where(
-    "status", "==", "assigned"
-  ).where(
-      "assignee_id", "==", userID
-  ).get().then((assignedTasks)=>{
-    // console.log(userID, " has these tasks assigned : ", assignedTasks.size);
-    workLoad = assignedTasks.size;
-    console.log(userID, " has these tasks assigned : ", workLoad);
-  });
-  return workLoad;
+// /**
+//  * Compute the number of tasks assigned to the specified user.
+//  * @param {string} userID of the user
+//  * @return {number} number of tasks currently assigned to this user.
+//  * */
+//  async function getUserWorkloadSize(userID){
+//   var assignedTasks = await db.collection(
+//     translationTaskCollectionName
+//   ).where(
+//     "status", "==", "assigned"
+//   ).where(
+//       "assignee_id", "==", userID
+//   ).get();
+//   return assignedTasks.size;
+// }
+
+/**
+ * Gets the set of translated sentences for the specified user
+ * @param {string} userID the user id
+ * @return {set} the set of translated sentences
+ */
+function getUserTranslatedSentences(userID) {
+  console.log(userID);
+  return new Set(["dataset-flores-dev/0000000002"]);
 }
 
-function getUserTranslatedSentences(userID){
-    console.log(userID);
-    return ["0000000002"];
-}
 
-function assignTaskToUser(userID, workloadLoad){
-
-  // const userTranslatedSentences = user.getData().translatedSentences;
-  const userTranslatedSentences = getUserTranslatedSentences(userID);
-
+/**
+ * Assign translation tasks to the specified user
+ * @param {string} userID the user to assign tasks to
+ * @param {number} taskCountToBeAssigned the number of tasks to be assigned
+ */
+function assignTaskToUser(userID, taskCountToBeAssigned) {
+  const excludedSentences = getUserTranslatedSentences(userID);
   db.collection(translationTaskCollectionName).where(
-  "status", "==", "unassigned"
-  ).where(
-    "document_id", "not-in", userTranslatedSentences
+      "status", "==", "unassigned"
   ).orderBy(
-    "document_id"
-  ).orderBy(
-    "priority", "asc"
-  ).limit(workloadLoad)
-  .get().then((availableTasks)=>{
-    availableTasks.docs.forEach((availableTask)=>{
-      availableTask.ref.set({
-        "status": "assigned",
-        "assignee_id": userID,
-        "assigned_date": new Date(),
-      }, {merge: true}).then(()=>{
-        console.log("Assigned Task #", availableTask.id, " to User : ", userID);
+      "priority", "asc"
+  ).limit(userBucketMaxSize * 2)
+      .get().then((unassignedTasks)=>{
+        let assignedTaskCount = 0;
+        unassignedTasks.docs.forEach((unassignedTask)=>{
+          const taskSentenceReference = `${unassignedTask.get("collection_id")}/${unassignedTask.get("document_id")}`;
+          if (assignedTaskCount >= taskCountToBeAssigned) {
+            console.log(`Enough tasks assigned to user. Skipping task#${unassignedTask.id}`);
+          } else if (excludedSentences.has(taskSentenceReference)) {
+            console.log(`Task assignment skipping task#${unassignedTask.id} for user`);
+          } else {
+            unassignedTask.ref.set({
+              "status": "assigned",
+              "assignee_id": userID,
+              "assigned_date": new Date(),
+            }, {merge: true}).then(()=>{
+              console.log(`Assigned Task# ${unassignedTask.id} to User#${userID}`);
+            });
+            assignedTaskCount += 1;
+            excludedSentences.add(
+                taskSentenceReference
+            );
+          }
+        });
       });
-    });
-  });
 }
 
-/** Assign Task to increase user workloads to their max */
+/**
+ * Assign tasks to all active translators. increase user workloads to their max
+ * @return {Promise} the workload assignment task
+ */
 function updateUserWorkload() {
   // Retrieve All actives users with buckets not full
-  db.collection(userCollectionName).where(
-  "isActiveTranslator", "==", true
+  return db.collection(userCollectionName).where(
+      "isActiveTranslator", "==", true
   ).get().then((activeUsers)=>{
     // For each user, fill the bucket by getting the next available tasks
     activeUsers.docs.forEach((activeUser)=>{
       // Check workload of Active user
       // var userWorkLoadSize = getUserWorkloadSize(activeUser.id);
 
-      var userWorkLoadSize = 0;
+      let userWorkLoadSize = 0;
       db.collection(translationTaskCollectionName).where(
-      "status", "==", "assigned"
+          "status", "==", "assigned"
       ).where(
           "assignee_id", "==", activeUser.id
       ).get().then((assignedTasks)=>{
         // console.log(userID, " has these tasks assigned : ", assignedTasks.size);
         userWorkLoadSize = assignedTasks.size;
         console.log(activeUser.id, " has the current load size : ", userWorkLoadSize);
-        if(userWorkLoadSize < userBucketMaxSize){
+        if (userWorkLoadSize < userBucketMaxSize) {
           console.log("UserWorkLoad ", userWorkLoadSize, " is under the max :", userBucketMaxSize);
           const workLoadToAssign = userBucketMaxSize - userWorkLoadSize;
           assignTaskToUser(activeUser.id, workLoadToAssign);
@@ -150,9 +168,11 @@ exports.taskAssignmentAgent = functions.pubsub.schedule("every 15 minutes").onRu
   console.log(context);
 
   // Step 1: Unassign expired tasks
-  unassignExpiredAssignments();
+  const promise1 = unassignExpiredAssignments();
 
   // Step 2: Assign Tasks to fill user buckets
-  updateUserWorkload();
-  return null;
+  const promise2 = updateUserWorkload();
+  return Promise.all([
+    promise1, promise2,
+  ]);
 });
