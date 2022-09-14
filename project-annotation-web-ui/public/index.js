@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, setDoc, getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 
@@ -27,6 +27,8 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const firestore = getFirestore(app);
 var currentUser;
+var translations = [];
+var translationsIndex = 0;
 
 const auth = getAuth();
 
@@ -39,23 +41,35 @@ const saveUser = async(user) => {
   }
 }
 
-const loadData = async() => {
+const loadData = async(index) => {
   if(currentUser) {
-    const docRef = doc(firestore, "dataset-flores-dev", "0000000000");
-    const docSnap = await getDoc(docRef);
-    const doc_data = docSnap.data();
-    console.log(doc_data)
-  
-    // TODO: change this to tranSlations
-    doc_data.tranlations.forEach(translation => {
-      const selector = "#" + `txt-${translation.lang}`;
-      console.log("Selector", selector);
-      console.log("Value", translation.translation);
-      $(selector).text(
-        translation.translation
-      );
-    });
+    if(translations.length > 0) {
+      const docRef = doc(firestore, translations[index].collection_id, translations[index].document_id);
+      const docSnap = await getDoc(docRef);
+      const doc_data = docSnap.data();
+    
+      // TODO: change this to tranSlations
+      doc_data.tranlations.forEach(translation => {
+        const selector = "#" + `txt-${translation.lang}`;
+        console.log("Selector", selector);
+        console.log("Value", translation.translation);
+        $(selector).text(
+          translation.translation
+        );
+      });
+    }
   }
+}
+
+const getTranslationTasks = async() => {
+  // TODO : rename tanslation-tasks to translations-tasks
+  const q = query(collection(firestore, "tanslation-tasks"), where("assignee_id", "==", currentUser.uid), where("status", "==", "assigned"));
+  
+  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach((doc) => {
+    translations.push(doc.data());
+  });
+  loadData(translationsIndex);
 }
 
 onAuthStateChanged(auth, (user) => {
@@ -70,7 +84,7 @@ onAuthStateChanged(auth, (user) => {
     var phoneNumber = user.phoneNumber;
     var providerData = user.providerData;
     saveUser(user);
-    loadData();
+    getTranslationTasks();
     user.getIdToken().then(function(accessToken) {
       document.getElementById("username").textContent = displayName;
       document.getElementById("photo").src = photoURL;
