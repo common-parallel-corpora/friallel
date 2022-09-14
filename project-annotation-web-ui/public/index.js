@@ -32,6 +32,9 @@ var translationsIndex = 0;
 
 const auth = getAuth();
 
+/**
+ * Fonction de sauvegarde l'utilisateur connecté par L'interface de login
+ */
 const saveUser = async(user) => {
   const usersRef = doc(firestore, "users", user.uid);
   const usersSnap = await getDoc(usersRef);
@@ -40,6 +43,7 @@ const saveUser = async(user) => {
       setDoc(newRef, { name: user.displayName, isActiveTranslator:false, email:user.email }, { merge: true });
   }
 }
+//---------------------
 
 const loadData = async(index) => {
   if(currentUser) {
@@ -73,22 +77,18 @@ const getTranslationTasks = async() => {
 }
 
 onAuthStateChanged(auth, (user) => {
+  console.log("ui:: onAuthStateChanged called with : ", user);
   if (user) {
     currentUser = user;
-    // User is signed in.
-    var displayName = user.displayName;
-    var email = user.email;
-    var emailVerified = user.emailVerified;
-    var photoURL = user.photoURL;
-    var uid = user.uid;
-    var phoneNumber = user.phoneNumber;
-    var providerData = user.providerData;
-    saveUser(user);
-    getTranslationTasks();
-    user.getIdToken().then(function(accessToken) {
-      document.getElementById("username").textContent = displayName;
-      document.getElementById("photo").src = photoURL;
-    });
+    saveUser(currentUser);
+    //getTranslationTasks();
+    $("#username").html(currentUser.displayName);
+      $("#photo").attr("src", currentUser.photoURL);
+   /*  user.getIdToken().then(function(accessToken) {
+
+      $("#username").html(currentUser.displayName);
+      $("#photo").attr("src", currentUser.photoURL);
+    }); */
   } else {
     // User is signed out.
     window.location.href = 'login/login.html';
