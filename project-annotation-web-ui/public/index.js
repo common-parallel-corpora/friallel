@@ -32,9 +32,52 @@ var translationsIndex = 0;
 
 const auth = getAuth();
 
+console.log("before enableIndexedDbPersistence");
+enableIndexedDbPersistence(firestore)
+  .catch((err) => {
+      if (err.code == 'failed-precondition') {
+        console.log("Unable to enable offline db");
+          // Multiple tabs open, persistence can only be enabled
+          // in one tab at a a time.
+          // ...
+      } else if (err.code == 'unimplemented') {
+          // The current browser does not support all of the
+          // features required to enable persistence
+          // ...
+          console.log("offline db not implemented");
+      }
+  });
+// ---------------------------------------------------------
+
+
+// Collections name
+const TRANSLATION_TASKS = "tanslation-tasks";
+const USERS = "users";
+const DATASET_FLORES_DEV = "dataset-flores-dev";
+const DATASET_FLORES_DEVTEST = "dataset-flores-devtest";
+
 /**
- * Fonction de sauvegarde l'utilisateur connecté par L'interface de login
+ * SYNCHRONISATION STATE
  */
+
+const database = getDatabase();
+const connectedRef = ref(database, ".info/connected");
+onValue(connectedRef, (snap) => {
+  if (snap.val() === true) {
+    $("#connection-state").removeClass("synchro-light-offline");
+    $("#connection-state").addClass("synchro-light-online");
+    
+  } else {
+    $("#connection-state").removeClass("synchro-light-online");
+    $("#connection-state").addClass("synchro-light-offline");
+  }
+});
+
+/**
+ * UTILISATEUR
+ */
+
+// Sauvegarde
 const saveUser = async(user) => {
   const usersRef = doc(firestore, "users", user.uid);
   const usersSnap = await getDoc(usersRef);
@@ -43,7 +86,31 @@ const saveUser = async(user) => {
       setDoc(newRef, { name: user.displayName, isActiveTranslator:false, email:user.email }, { merge: true });
   }
 }
+// Mise à jour interface et redirection
+const redirectToLogin = function(){
+  window.location.href = 'login/login.html';
+}
+onAuthStateChanged(auth, (user) => {
+  if(!user){
+    // User is signed out.
+    redirectToLogin()
+    return;
+  }
+  currentUser = user;
+  saveUser(currentUser);
+  $("#username").html(currentUser.displayName);
+  $("#photo").attr("src", currentUser.photoURL);
+  
+  getTranslationTask();
+});
 //---------------------
+
+/**
+ * DATA
+ */
+
+var currentTask = null;
+var currentTranslation = null;
 
 const loadData = async(index) => {
   if(currentUser) {
@@ -64,64 +131,63 @@ const loadData = async(index) => {
     }
   }
 }
+// translation in spécific language for logged user
+const loadTranslation = async(task, lang) => {
+  if(!currentUser) {
+    redirectToLogin()
+    return;
+  }
+  var taskData = task ? task.data() : null;
+  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
+    console.error("error:: task not conform. Task : ", taskData);
+    return;
+  }
 
-const getTranslationTasks = async() => {
-  // TODO : rename tanslation-tasks to translations-tasks
-  const q = query(collection(firestore, "tanslation-tasks"), where("assignee_id", "==", currentUser.uid), where("status", "==", "assigned"));
+  const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
+  const docSnap = await getDoc(docRef);
+
   
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach((doc) => {
-    translations.push(doc.data());
-  });
-  loadData(translationsIndex);
+
+  if(docSnap.exists()){
+    currentTranslation = null;
+    var res = docSnap.data();
+    if(res?.tranlations != null){
+      let trans = null;
+      for(trans of res.tranlations){
+        if(lang != null && trans?.lang == lang){
+          currentTranslation = trans;
+          updateView();
+        }
+      }
+    }
+  }
+  console.log("ui:: currentTranslation : ", currentTranslation);
 }
 
-onAuthStateChanged(auth, (user) => {
-  console.log("ui:: onAuthStateChanged called with : ", user);
-  if (user) {
-    currentUser = user;
-    saveUser(currentUser);
-    //getTranslationTasks();
-    $("#username").html(currentUser.displayName);
-      $("#photo").attr("src", currentUser.photoURL);
-   /*  user.getIdToken().then(function(accessToken) {
-
-      $("#username").html(currentUser.displayName);
-      $("#photo").attr("src", currentUser.photoURL);
-    }); */
-  } else {
-    // User is signed out.
-    window.location.href = 'login/login.html';
+// Get user first translation task
+const getTranslationTask = async() => {
+  const tasksQry = query(
+    collection(firestore, TRANSLATION_TASKS), 
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "assigned")
+  );
+  const tasksQrySnap = await getDocs(tasksQry);
+  if(tasksQrySnap.docs.length > 0){
+    currentTask = tasksQrySnap.docs[0];
+    loadTranslation(currentTask, "fra_Latn");
   }
-});
+}
 
-console.log("before enableIndexedDbPersistence");
-enableIndexedDbPersistence(firestore)
-  .catch((err) => {
-      if (err.code == 'failed-precondition') {
-        console.log("Unable to enable offline db");
-          // Multiple tabs open, persistence can only be enabled
-          // in one tab at a a time.
-          // ...
-      } else if (err.code == 'unimplemented') {
-          // The current browser does not support all of the
-          // features required to enable persistence
-          // ...
-          console.log("offline db not implemented");
-      }
-  });
-
-
-const database = getDatabase();
-const connectedRef = ref(database, ".info/connected");
-onValue(connectedRef, (snap) => {
-  if (snap.val() === true) {
-    $("#connection-state").removeClass("synchro-light-offline");
-    $("#connection-state").addClass("synchro-light-online");
-    
-  } else {
-    $("#connection-state").removeClass("synchro-light-online");
-    $("#connection-state").addClass("synchro-light-offline");
+/**
+ * VIEW
+ */
+const updateView = function(){
+  if(!currentTranslation){
+    return;
   }
-});
+  $("#txt-fra_Latn").text(currentTranslation.translations);
+}
+
+
+
 

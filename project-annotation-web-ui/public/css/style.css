@@ -56,20 +56,19 @@ p {
     font-size: .5em;
     margin-right: 8px;
 }
-.synchro-state .synchro-light-online {
+.synchro-state .synchro-light {
     height: 5px;
     width: 5px;
     border-radius: 5px;
+    background-color:gray;
+}
+.synchro-state .synchro-light.synchro-light-online {
     background-color:green;
 }
 
-.synchro-state .synchro-light-offline {
-    height: 5px;
-    width: 5px;
-    border-radius: 5px;
+.synchro-state .synchro-light.synchro-light-offline {
     background-color: orange;
 }
-
 
 
 
