@@ -1,8 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, setDoc, getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -25,6 +26,60 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const firestore = getFirestore(app);
+var currentUser;
+
+const auth = getAuth();
+
+const saveUser = async(user) => {
+  const usersRef = doc(firestore, "users", user.uid);
+  const usersSnap = await getDoc(usersRef);
+  if(!usersSnap.exists()) {
+      const newRef = doc(firestore, 'users', user.uid);
+      setDoc(newRef, { name: user.displayName, isActiveTranslator:false, email:user.email }, { merge: true });
+  }
+}
+
+const loadData = async() => {
+  if(currentUser) {
+    const docRef = doc(firestore, "dataset-flores-dev", "0000000000");
+    const docSnap = await getDoc(docRef);
+    const doc_data = docSnap.data();
+    console.log(doc_data)
+  
+    // TODO: change this to tranSlations
+    doc_data.tranlations.forEach(translation => {
+      const selector = "#" + `txt-${translation.lang}`;
+      console.log("Selector", selector);
+      console.log("Value", translation.translation);
+      $(selector).text(
+        translation.translation
+      );
+    });
+  }
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = user;
+    // User is signed in.
+    var displayName = user.displayName;
+    var email = user.email;
+    var emailVerified = user.emailVerified;
+    var photoURL = user.photoURL;
+    var uid = user.uid;
+    var phoneNumber = user.phoneNumber;
+    var providerData = user.providerData;
+    saveUser(user);
+    loadData();
+    user.getIdToken().then(function(accessToken) {
+      document.getElementById("username").textContent = displayName;
+      document.getElementById("photo").src = photoURL;
+    });
+  } else {
+    // User is signed out.
+    window.location.href = 'login/login.html';
+  }
+});
 
 console.log("before enableIndexedDbPersistence");
 enableIndexedDbPersistence(firestore)
@@ -41,25 +96,6 @@ enableIndexedDbPersistence(firestore)
           console.log("offline db not implemented");
       }
   });
-
-
-
-// fake_user_01
-
-const docRef = doc(firestore, "dataset-flores-dev", "0000000000");
-const docSnap = await getDoc(docRef);
-const doc_data = docSnap.data();
-console.log(doc_data)
-
-// TODO: change this to tranSlations
-doc_data.tranlations.forEach(translation => {
-  const selector = "#" + `txt-${translation.lang}`;
-  console.log("Selector", selector);
-  console.log("Value", translation.translation);
-  $(selector).text(
-    translation.translation
-  );
-});
 
 
 const database = getDatabase();
