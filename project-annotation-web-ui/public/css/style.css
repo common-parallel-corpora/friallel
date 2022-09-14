@@ -207,6 +207,7 @@ body {
     flex-flow: row nowrap;
     justify-content: center;
 }
+
 .row.result .actions .actions-btns {
     width: 260px;
     display: flex;
