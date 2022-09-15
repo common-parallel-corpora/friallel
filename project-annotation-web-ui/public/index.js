@@ -79,12 +79,14 @@ onValue(connectedRef, (snap) => {
 
 // Sauvegarde
 const saveUser = async(user) => {
-  const usersRef = doc(firestore, "users", user.uid);
-  const usersSnap = await getDoc(usersRef);
-  if(!usersSnap.exists()) {
-      const newRef = doc(firestore, 'users', user.uid);
+  const userRef = doc(firestore, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  if(!userSnap.exists()) {
+      const newRef = doc(firestore, 'users', user.uid); //TODO check with line #82
       setDoc(newRef, { name: user.displayName, isActiveTranslator:false, email:user.email }, { merge: true });
   }
+  currentUser["firestoreUser"] = userSnap.data()
+
 }
 // Mise à jour interface et redirection
 const redirectToLogin = function(){
@@ -111,8 +113,9 @@ onAuthStateChanged(auth, (user) => {
 
 var currentTask = null;
 var currentTranslation = null;
+var defaultLanguage = "eng_Latn";
 
-const loadData = async(index) => {
+/* const loadData = async(index) => {
   if(currentUser) {
     if(translations.length > 0) {
       const docRef = doc(firestore, translations[index].collection_id, translations[index].document_id);
@@ -130,9 +133,9 @@ const loadData = async(index) => {
       });
     }
   }
-}
+} */
 // translation in spécific language for logged user
-const loadTranslation = async(task, lang) => {
+const loadTranslation = async(task) => {
   if(!currentUser) {
     redirectToLogin()
     return;
@@ -149,19 +152,23 @@ const loadTranslation = async(task, lang) => {
   
 
   if(docSnap.exists()){
-    currentTranslation = null;
+    var currentTranslations = [];
     var res = docSnap.data();
     if(res?.tranlations != null){
       let trans = null;
-      for(trans of res.tranlations){
-        if(lang != null && trans?.lang == lang){
-          currentTranslation = trans;
-          updateView();
+      let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
+      for(trans of res.tranlations) {
+        if(neededLangs.includes(trans?.lang)){
+          currentTranslations.push({
+            lang : trans.lang,
+            translation: trans.translation
+          });
         }
       }
+      updateView(currentTranslations);
     }
   }
-  console.log("ui:: currentTranslation : ", currentTranslation);
+  console.log("ui:: currentTranslation : ", currentTranslations);
 }
 
 // Get user first translation task
@@ -174,18 +181,28 @@ const getTranslationTask = async() => {
   const tasksQrySnap = await getDocs(tasksQry);
   if(tasksQrySnap.docs.length > 0){
     currentTask = tasksQrySnap.docs[0];
-    loadTranslation(currentTask, "fra_Latn");
+    loadTranslation(currentTask);
   }
 }
 
 /**
  * VIEW
  */
-const updateView = function(){
-  if(!currentTranslation){
+
+const buildTranslationSourceDom = function(uiTranslation) {
+  return "<div class=\"text-to-translate\"><p>" + uiTranslation.translation + "<p></div>";
+}
+
+const updateView = function(currentTranslations){
+  if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
-  $("#txt-fra_Latn").text(currentTranslation.translations);
+
+  let uiTranslationSourcesDom = ""
+  currentTranslations.forEach ( uiTranslation => {
+    uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
+  })
+  $("#translation_sources").html(uiTranslationSourcesDom);
 }
 
 
