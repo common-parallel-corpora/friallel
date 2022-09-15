@@ -28,11 +28,11 @@ def generate_dataset_sentences(args):
 
     for sentence_ix, parallel_line in enumerate(parallel_corpus_utils.generate_parallel_lines(file_list)):
         sentence_doc_data = {
-            "tranlations": []
+            "translations": []
         }
         for tr_ix, sentence_variant in enumerate(parallel_line):
             lang = lang_list[tr_ix]
-            sentence_doc_data["tranlations"].append(
+            sentence_doc_data["translations"].append(
                 {
                     "user_id": "REFERENCE",
                     "lang": lang,
