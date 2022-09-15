@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, updateDoc, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 
@@ -51,10 +51,13 @@ enableIndexedDbPersistence(firestore)
 
 
 // Collections name
-const TRANSLATION_TASKS = "tanslation-tasks";
+const TRANSLATION_TASKS = "tanslation-tasks"; //TODO rename tanslation-tasks translation-tasks
 const USERS = "users";
 const DATASET_FLORES_DEV = "dataset-flores-dev";
 const DATASET_FLORES_DEVTEST = "dataset-flores-devtest";
+const LANG_ENCODING = "nqo_Nkoo";
+const COMPLETED_TASK_STATUS = "completed";
+const UNASSIGNED_TASK_STATUS = "unassigned";
 
 /**
  * SYNCHRONISATION STATE
@@ -181,6 +184,7 @@ const getTranslationTask = async() => {
   const tasksQrySnap = await getDocs(tasksQry);
   if(tasksQrySnap.docs.length > 0){
     currentTask = tasksQrySnap.docs[0];
+    console.log("currentTask", currentTask)
     loadTranslation(currentTask);
   }
 }
@@ -203,7 +207,77 @@ const updateView = function(currentTranslations){
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
   })
   $("#translation_sources").html(uiTranslationSourcesDom);
+  $("#resulttext").val('');
 }
+
+$( "#validate_btn" ).click(function() {
+  let translationValue = $("#resulttext").val().trim();
+  console.log("translationValue", translationValue)
+  if (translationValue.length > 0) {
+    saveTranslation(translationValue)
+  }
+});
+
+const saveTranslation = async function(translationValue) {
+  var taskData = currentTask ? currentTask.data() : null;
+  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
+    console.error("error:: task not conform. Task : ", taskData);
+    return;
+  }
+  const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
+
+  console.log("docRef",docRef)
+
+  //TODO format date for firestore
+  let now = Date.now();
+
+  //TODO tranlations to translations
+  await updateDoc(docRef, {
+    tranlations: arrayUnion( {
+      created : now,
+      lang : LANG_ENCODING,
+      translation : translationValue,
+      updated : now,
+      user_id : currentUser.uid,
+    })
+  }).then(docRef => {
+    console.log("Translation added successfully");
+    updateTranslationTask(COMPLETED_TASK_STATUS)
+  })
+  .catch(error => {
+      console.log(error);
+  });
+
+  const docSnap = await getDoc(docRef);
+  console.log("docSnap",docSnap.data());
+}
+
+const updateTranslationTask = async function(status) {
+
+  var taskData = currentTask ? currentTask.data() : null;
+  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
+    console.error("error:: task not conform. Task : ", taskData);
+    return;
+  }
+
+  var taskData = currentTask ? currentTask.data() : null;
+
+  const docRef = doc(firestore, TRANSLATION_TASKS, currentTask.id);
+
+  await updateDoc(docRef, {
+    status: status
+  }).then(docRef => {
+    console.log("Translation task updated successfully");
+    getTranslationTask();
+  })
+  .catch(error => {
+      console.log(error);
+  });
+}
+
+$( "#skip_btn" ).click(function() {
+  updateTranslationTask(UNASSIGNED_TASK_STATUS)
+});
 
 
 
