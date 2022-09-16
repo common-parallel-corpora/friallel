@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, updateDoc, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, updateDoc, Timestamp, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 
@@ -229,7 +229,7 @@ const saveTranslation = async function(translationValue) {
   console.log("docRef",docRef)
 
   //TODO format date for firestore
-  let now = Date.now();
+  let now = Timestamp.fromDate(new Date());//Date.now();
 
   //TODO tranlations to translations
   await updateDoc(docRef, {
@@ -241,15 +241,12 @@ const saveTranslation = async function(translationValue) {
       user_id : currentUser.uid,
     })
   }).then(docRef => {
-    console.log("Translation added successfully");
+    alert("Translation added successfully");
     updateTranslationTask(COMPLETED_TASK_STATUS)
   })
   .catch(error => {
       console.log(error);
   });
-
-  const docSnap = await getDoc(docRef);
-  console.log("docSnap",docSnap.data());
 }
 
 const updateTranslationTask = async function(status) {
