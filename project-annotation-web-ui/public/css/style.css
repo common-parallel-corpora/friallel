@@ -10,10 +10,30 @@ p {
     padding: 0;
 }
 
-.container.main {
+.content.main {
     background-color: #CECECE;
     width: 100%;
     height: 100%;
+}
+
+
+/**
+    spinner
+*/
+#spinners {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: #000;
+    opacity: .7;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+#spinners.hide {
+    display: none;
 }
 
 /**
