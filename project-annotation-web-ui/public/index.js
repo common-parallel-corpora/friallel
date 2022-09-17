@@ -59,6 +59,7 @@ const LANG_ENCODING = "nqo_Nkoo";
 const COMPLETED_TASK_STATUS = "completed";
 const UNASSIGNED_TASK_STATUS = "unassigned";
 
+
 /**
  * SYNCHRONISATION STATE
  */
@@ -176,6 +177,7 @@ const loadTranslation = async(task) => {
 
 // Get user first translation task
 const getTranslationTask = async() => {
+  showLoader();
   const tasksQry = query(
     collection(firestore, TRANSLATION_TASKS), 
     where("assignee_id", "==", currentUser.uid), 
@@ -208,15 +210,48 @@ const updateView = function(currentTranslations){
   })
   $("#translation_sources").html(uiTranslationSourcesDom);
   $("#resulttext").val('');
+  hideLoader();
 }
 
 $( "#validate_btn" ).click(function() {
   let translationValue = $("#resulttext").val().trim();
   console.log("translationValue", translationValue)
   if (translationValue.length > 0) {
-    saveTranslation(translationValue)
+    currentInteraction = InteractionType.UPDATE_TRANSLATE;
+    confirmationModal.show();
+    //saveTranslation(translationValue)
   }
 });
+
+const actionSaveTranslation = function(){
+  let translationValue = $("#resulttext").val().trim();
+  console.log("Sauvegarde declenché sur le text : ", translationValue);
+  showLoader()
+  saveTranslation(translationValue);
+  currentInteraction = null;
+}
+const actionSkipTranslation = function(){
+  console.log("Ignorer la traduction declenché sur le text");
+  showLoader();
+  updateTranslationTask(UNASSIGNED_TASK_STATUS);
+  currentInteraction = null;
+}
+
+// INTERACTION VALIDATION
+const InteractionType = {
+	SKIP: {
+    MESSAGE: "Voulez vous ignorez la traduction courante ?",
+    VALUE: 0,
+    ACTION: actionSkipTranslation
+  },
+	UPDATE_TRANSLATE: {
+    MESSAGE: "Confirmez vous la soumission de la traduction ?",
+    VALUE: 1,
+    ACTION: actionSaveTranslation
+  }
+};
+var currentInteraction = null;
+// -----------------------------------------------------------------
 
 const saveTranslation = async function(translationValue) {
   var taskData = currentTask ? currentTask.data() : null;
@@ -245,6 +280,7 @@ const saveTranslation = async function(translationValue) {
     updateTranslationTask(COMPLETED_TASK_STATUS)
   })
   .catch(error => {
+      hideLoader();
       console.log(error);
   });
 }
@@ -268,14 +304,37 @@ const updateTranslationTask = async function(status) {
     getTranslationTask();
   })
   .catch(error => {
+      hideLoader();
       console.log(error);
   });
 }
 
+const confirmationModal = new bootstrap.Modal('#confirmationModal', {});
+//const confirmationModalDOM = document.getElementById('confirmationModal');
+const confirmationModalDOM = $("#confirmationModal");
+
+confirmationModalDOM.on("show.bs.modal", event => {
+  console.log("modal:: etat: Demande d'ouverture");
+  if(InteractionType != null){
+    $("#confirmationModalMessage").html(currentInteraction.MESSAGE);
+  }
+});
+
 $( "#skip_btn" ).click(function() {
-  updateTranslationTask(UNASSIGNED_TASK_STATUS)
+  currentInteraction = InteractionType.SKIP;
+  confirmationModal.show();
+});
+$( "#modal-confirm-btn" ).click(function() {
+  currentInteraction.ACTION();
 });
 
 
 
 
+// Spinner
+const hideLoader = function() {
+  $("#spinners").addClass("hide");
+}
+const showLoader = function() {
+  $("#spinners").removeClass("hide");
+}
