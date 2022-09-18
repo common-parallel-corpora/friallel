@@ -1,0 +1,10 @@
+{
+    "loading": "en-Chargement...",
+    "confirmation": "en-Confirmation",
+    "confirmation-message": "en-Confirmez vous la soumission de la traduction ?",
+    "abort": "en-Annuler",
+    "confirm": "en-Confirmer",
+    "user-name": "en-Utilisateur",
+    "sync-state": "en-Etat de synchronisation avec le serveur",
+    "app-title": "en-FS Annotation Web UI"
+}

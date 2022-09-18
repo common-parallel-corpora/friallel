@@ -346,3 +346,83 @@ const hideLoader = function() {
 const showLoader = function() {
   $("#spinners").removeClass("hide");
 }
+
+
+//////////// Translations-------------------------
+// The locale our app first shows
+const defaultLocale = "nqo";
+
+// The active locale
+let locale;
+
+// Gets filled with active locale translations
+let translationsTexts = {};
+
+// When the page content is ready...
+document.addEventListener("DOMContentLoaded", () => {
+  // Translate the page to the default locale
+  setLocale(defaultLocale);
+});
+
+// Load translations for the given locale and translate
+// the page to this locale
+async function setLocale(newLocale) {
+  if (newLocale === locale) return;
+
+  const newTranslations = 
+    await fetchTranslationsFor(newLocale);
+
+  locale = newLocale;
+  translationsTexts = newTranslations;
+
+  translatePage();
+}
+
+// Retrieve translations JSON object for the given
+// locale over the network
+async function fetchTranslationsFor(newLocale) {
+  const response = await fetch(`/i18n/${newLocale}.json`);
+  return await response.json();
+}
+
+// Replace the inner text of each element that has a
+// data-i18n-key attribute with the translation corresponding
+// to its data-i18n-key
+function translatePage() {
+  document
+    .querySelectorAll("[data-i18n-key]")
+    .forEach(translateElement);
+}
+
+// Replace the inner text of the given HTML element
+// with the translation in the active locale,
+// corresponding to the element's data-i18n-key
+function translateElement(element) {
+  const key = element.getAttribute("data-i18n-key");
+  const translation = translationsTexts[key];
+  element.innerText = translation;
+}
+
+// When the page content is ready...
+document.addEventListener("DOMContentLoaded", () => {
+  setLocale(defaultLocale);
+
+  bindLocaleSwitcher(defaultLocale);
+});
+
+// ...
+
+// Whenever the user selects a new locale, we
+// load the locale's translations and update
+// the page
+function bindLocaleSwitcher(initialValue) {
+  const switcher = 
+    document.querySelector("[data-i18n-switcher]");
+
+  switcher.value = initialValue;
+
+  switcher.onchange = (e) => {
+    // Set the locale to the selected option[value]
+    setLocale(e.target.value);
+  };
+}
