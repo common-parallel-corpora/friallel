@@ -227,6 +227,7 @@ $( "#validate_btn" ).click(function() {
   console.log("translationValue", translationValue)
   if (translationValue.length > 0) {
     currentInteraction = InteractionType.UPDATE_TRANSLATE;
+    translateModal();
     confirmationModal.show();
     //saveTranslation(translationValue)
   }
@@ -249,12 +250,12 @@ const actionSkipTranslation = function(){
 // INTERACTION VALIDATION
 const InteractionType = {
 	SKIP: {
-    MESSAGE: "Voulez vous ignorez la traduction courante ?",
+    MESSAGE: "ignore-translate",
     VALUE: 0,
     ACTION: actionSkipTranslation
   },
 	UPDATE_TRANSLATE: {
-    MESSAGE: "Confirmez vous la soumission de la traduction ?",
+    MESSAGE: "apply-translate",
     VALUE: 1,
     ACTION: actionSaveTranslation
   }
@@ -324,12 +325,13 @@ const confirmationModalDOM = $("#confirmationModal");
 confirmationModalDOM.on("show.bs.modal", event => {
   console.log("modal:: etat: Demande d'ouverture");
   if(InteractionType != null){
-    $("#confirmationModalMessage").html(currentInteraction.MESSAGE);
+    $("#confirmationModalMessage").attr("data-i18n-key",currentInteraction.MESSAGE);
   }
 });
 
 $( "#skip_btn" ).click(function() {
   currentInteraction = InteractionType.SKIP;
+  translateModal();
   confirmationModal.show();
 });
 $( "#modal-confirm-btn" ).click(function() {
@@ -350,7 +352,8 @@ const showLoader = function() {
 
 //////////// Translations-------------------------
 // The locale our app first shows
-const defaultLocale = "nqo";
+const defaultLocale = "fr";
+
 
 // The active locale
 let locale;
@@ -392,6 +395,10 @@ function translatePage() {
   document
     .querySelectorAll("[data-i18n-key]")
     .forEach(translateElement);
+}
+
+function translateModal() {
+  document.querySelectorAll("modal-body").forEach(translateElement);
 }
 
 // Replace the inner text of the given HTML element

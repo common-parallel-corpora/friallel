@@ -1,10 +1,11 @@
 {
     "loading": "en-Chargement...",
     "confirmation": "en-Confirmation",
-    "confirmation-message": "en-Confirmez vous la soumission de la traduction ?",
     "abort": "en-Annuler",
     "confirm": "en-Confirmer",
     "user-name": "en-Utilisateur",
     "sync-state": "en-Etat de synchronisation avec le serveur",
-    "app-title": "en-FS Annotation Web UI"
+    "app-title": "en-FS Annotation Web UI",
+    "ignore-translate": "en-Voulez vous ignorez la traduction courante ?-en",
+    "apply-translate": "en-Confirmez vous la soumission de la traduction ?-en"
 }
