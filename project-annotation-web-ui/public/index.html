@@ -278,8 +278,8 @@
               <h5 class="modal-title" id="confirmationModalLabel" data-i18n-key="confirmation">Confirmation</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="confirmationModalMessage" data-i18n-key="confirmation-message">
-              Confirmez vous la soumission de la traduction ?
+            <div class="modal-body" id="confirmationModalMessage" data-i18n-key="ignore-translate">
+              {% comment %} Confirmez vous la soumission de la traduction ? {% endcomment %}
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n-key="abort">Annuler</button>
@@ -293,7 +293,7 @@
       <div class="content main">
         <div class="row main-toolbar">
           <div class="toolbar">
-            <p id="username" data-i18n-key="user-name">
+            <p id="username">
               Utilisateur
             </p>
             <div id="userimage">
