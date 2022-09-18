@@ -6,7 +6,16 @@ admin.initializeApp();
 const db = getFirestore();
 
 const translationTaskCollectionName = "tanslation-tasks";
+const workflowCollectionName = "workflows";
+const annotationTaskCollectionName = "annotation-tasks";
 const userCollectionName = "users";
+
+// Constant datas
+const constantActive="active";
+const constantUnassigned="unassigned";
+const constantAssigned="assigned";
+const constantCompleted="completed";
+const constantAccepted="accepted";
 
 // Retrieving Data in Configuration File .env
 const maxAssignmentHours = process.env.MAX_TASK_ASSIGNMENT_AGE_HOURS;
@@ -50,13 +59,13 @@ async function unassignExpiredAssignments() {
   );
 
   await db.collection(translationTaskCollectionName).where(
-      "status", "==", "assigned"
+      "status", "==", constantAssigned
   ).where(
       "assigned_date", "<", maxAssignedDate
   ).get().then((assignedTasks)=>{
     assignedTasks.docs.forEach((translationTask)=>{
       translationTask.ref.set({
-        "status": "unassigned",
+        "status": constantUnassigned,
         "assignee_id": ""
       }, {merge: true}).then(()=>{
         console.log("Unassigned expired task assignment # ", translationTask.id);
@@ -64,22 +73,6 @@ async function unassignExpiredAssignments() {
     });
   });
 }
-
-// /**
-//  * Compute the number of tasks assigned to the specified user.
-//  * @param {string} userID of the user
-//  * @return {number} number of tasks currently assigned to this user.
-//  * */
-//  async function getUserWorkloadSize(userID){
-//   var assignedTasks = await db.collection(
-//     translationTaskCollectionName
-//   ).where(
-//     "status", "==", "assigned"
-//   ).where(
-//       "assignee_id", "==", userID
-//   ).get();
-//   return assignedTasks.size;
-// }
 
 /**
  * Gets the set of translated sentences for the specified user
@@ -91,7 +84,7 @@ async function getUserTranslatedSentences(userID) {
   const sentenceReferences = new Set();
 
   await db.collection(translationTaskCollectionName).where(
-      "status", "in", ["assigned", "completed"]
+      "status", "in", [constantAssigned, constantCompleted]
   ).where(
       "assignee_id", "==", userID
   ).get().then((userPriorTasks)=>{
@@ -114,7 +107,7 @@ async function getUserTranslatedSentences(userID) {
 async function assignTaskToUser(userID, taskCountToBeAssigned) {
   const excludedSentences = await getUserTranslatedSentences(userID);
   await db.collection(translationTaskCollectionName).where(
-      "status", "==", "unassigned"
+      "status", "==", constantUnassigned
   ).orderBy(
       "priority", "asc"
   ).limit(userBucketMaxSize * 2)
@@ -131,7 +124,7 @@ async function assignTaskToUser(userID, taskCountToBeAssigned) {
             console.log(`Awaiting task assignment for task#${unassignedTask.id}`);
             (async () => {
               await unassignedTask.ref.set({
-                "status": "assigned",
+                "status": constantAssigned,
                 "assignee_id": userID,
                 "assigned_date": new Date()
               }, {merge: true}).then(()=>{
@@ -163,7 +156,7 @@ async function updateUserWorkload() {
 
       let userWorkLoadSize = 0;
       db.collection(translationTaskCollectionName).where(
-          "status", "==", "assigned"
+          "status", "==", constantAssigned
       ).where(
           "assignee_id", "==", activeUser.id
       ).get().then(async (assignedTasks)=>{
@@ -191,3 +184,157 @@ exports.taskAssignmentAgent = functions.pubsub.schedule("every 1 minutes").onRun
   // Step 2: Assign Tasks to fill user buckets
   await updateUserWorkload();
 });
+
+/**
+ * Gets list of active workflows
+ * @return {set} the set active workflows
+ */
+async function getActiveWorkflows() {
+  const activeWorkflows = new Set();
+  await db.collection(workflowCollectionName).where(
+      "status", "==", constantActive
+  ).orderBy(
+      "priority", "asc"
+  ).get().then((activeWorkflowResults)=>{
+    activeWorkflowResults.forEach((workflow) => {
+      activeWorkflows.add(workflow.id);
+      console.log(`Added active workflows# ${workflow.id} for secentence#${workflow.get("document_id")}`);
+    });
+  });
+  return activeWorkflows;
+}
+
+/**
+ * Create new tasks for translation
+ * @param {string} workflowId workflow of the task to create
+ */
+async function createTranslationTask(workflowId) {
+  const workflow = db.collection(workflowCollectionName).doc(workflowId);
+  const workflowDocument = await workflow.get();
+  await db.collection(annotationTaskCollectionName).add({
+    type: "translation",
+    status: constantUnassigned,
+    document_id: workflowDocument.get("document_id"),
+    collection_id: workflowDocument.get("collection_id"),
+    workflow_id: workflowDocument.id,
+    target_lang: workflowDocument.get("target_lang"),
+    assignee_id: "",
+    translated_sentence: "",
+    creation_date: new Date()
+  });
+}
+
+/**
+ * Create new tasks for translation
+ * @param {string} workflowId workflow of the task to create
+ * @param {number} verificationLevel Level of the verification
+ */
+async function createVerificationTask(workflowId, verificationLevel) {
+  const workflow = db.collection(workflowCollectionName).doc(workflowId);
+  const workflowDocument = await workflow.get();
+  await db.collection(annotationTaskCollectionName).add({
+    type: "verification",
+    verification_level: verificationLevel,
+    status: constantUnassigned,
+    document_id: workflowDocument.get("document_id"),
+    collection_id: workflowDocument.get("collection_id"),
+    workflow_id: workflowDocument.id,
+    target_lang: workflowDocument.get("target_lang"),
+    assignee_id: "",
+    verification_status: "",
+    translated_sentence: "",
+    creation_date: new Date()
+  });
+}
+
+/**
+ * Complete workflow by changing it status and updating the translations
+ * @param {string} workflowId workflow of the task to create
+ * @param {string} translation Final translation to update in the translations collection
+ */
+async function completeActiveWorkflow(workflowId, translation) {
+  console.log("Workflow #", workflowId, " last verification is done => completing the workflow");
+  // Complete the workflow now
+  const workflowRef = db.collection(workflowCollectionName).doc(workflowId);
+  await workflowRef.set({
+    status: constantCompleted
+  }, {merge: true});
+  // Update translated sentences
+  console.log("Workflow completion final step => Saving translated sentences: ", translation);
+}
+
+exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async (context) => {
+  // Get all active workflows
+  const activeWorkflows = await getActiveWorkflows();
+  if (activeWorkflows.size === 0) {
+    console.log("There are no active workflows");
+  } else {
+    // Go through each workflow to update the task list if needed
+    activeWorkflows.forEach(async (activeWorkflow)=>{
+      console.log("Working on workflow : ", activeWorkflow);
+      await db.collection(annotationTaskCollectionName).where(
+          "workflow_id", "==", activeWorkflow
+      ).orderBy(
+          "creation_date", "desc"
+      ).get().then(async (workFlowTasks)=>{
+        console.log("Checking workflow #", activeWorkflow, " annontation tasks");
+        if (workFlowTasks.size === 0) {
+          // Create first translation tasks
+          console.log("Workflow #", activeWorkflow, " has no task - Creating Translation Task");
+          await createTranslationTask(activeWorkflow);
+        } else {
+          if (workFlowTasks.size < 3) {
+            console.log("Workflow #", activeWorkflow, "has 1 or 2 tasks : Translation and (possibly) verification Level 1");
+            const task = workFlowTasks.docs[0];
+            if (task.get("status") === constantCompleted) {
+              console.log("Workflow #", activeWorkflow, " last Task (Translation or Verification Level 1) has been completed");
+              // Verification level matches the number of task
+              const verificationLevel = workFlowTasks.size;
+              console.log("Creating Verification Task for level : ", verificationLevel);
+              // Translation task complete, need new verification task
+              await createVerificationTask(activeWorkflow, verificationLevel);
+            } else {
+              console.log("Workflow #", activeWorkflow, " last task is still pending completion");
+            }
+          } else if (workFlowTasks.size < 4) {
+            console.log("Workflow #", activeWorkflow, " has 1 translation tasks and 2 verifications");
+            const lastVerificationTask = workFlowTasks.docs[0];
+            if (lastVerificationTask.get("status") === constantCompleted) {
+              console.log("Workflow #", activeWorkflow, " last verification task has been completed");
+              const beforeLastVerificationTask = workFlowTasks.docs[1];
+              // Two verification completed and both accepted - Complete the workflow
+              if (lastVerificationTask.get("verification_status") === constantAccepted &&
+                beforeLastVerificationTask.get("verification_status") === constantAccepted) {
+                // Completing active workflow
+                const translatedSentence = "This is a dummy value for NKO translation";
+                completeActiveWorkflow(activeWorkflow, translatedSentence);
+              } else {
+                console.log("Workflow #", activeWorkflow,
+                    " One (or two) of the two verifications has been rejected => Need one last verification task Level 3");
+                // Need to create a 3rd level verification
+                const verificationLevel = workFlowTasks.size;
+                console.log("Creating Verification Task for level : ", verificationLevel);
+                // Translation task complete, need new verification task
+                await createVerificationTask(activeWorkflow, verificationLevel);
+              }
+            } else {
+              console.log("Workflow #", activeWorkflow, " last task is still pending completion");
+            }
+          } else {
+            console.log("Workflow #", activeWorkflow, " has 1 translation tasks and 2 verifications");
+            // 3rd Level verification completed
+            const lastVerificationTask = workFlowTasks.docs[0];
+            if (lastVerificationTask.get("status") === constantCompleted) {
+              // Completing active workflow
+              const translatedSentence = "This is a dummy value for NKO translation";
+              completeActiveWorkflow(activeWorkflow, translatedSentence);
+            } else {
+              console.log("Workflow #", activeWorkflow, " last task is still pending completion");
+            }
+          }
+        }
+      });
+    });
+  }
+});
+
