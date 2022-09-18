@@ -1,0 +1,10 @@
+{
+    "loading": "nqo-Chargement...",
+    "confirmation": "nqo-Confirmation",
+    "confirmation-message": "nqo-Confirmez vous la soumission de la traduction ?",
+    "abort": "nqo-Annuler",
+    "confirm": "nqo-Confirmer",
+    "user-name": "nqo-Utilisateur",
+    "sync-state": "nqo-Etat de synchronisation avec le serveur",
+    "app-title": "nqo-FS Annotation Web UI"
+}
