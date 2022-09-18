@@ -16,6 +16,45 @@ p {
     height: 100%;
 }
 
+.container-fluid {
+    margin: 0;
+    padding: 0;
+}
+
+
+
+/**
+    NavBar
+*/
+.navbar .navbar-brand span, .navbar .user-info span {
+    margin: 0 4px;
+    font-size: 0.875em;
+}
+
+.navbar .navbar-brand {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.navbar .user-info {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.navbar img {
+    height: 40px;
+}
+.navbar .synchro-state {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+}
+#synchrotext {
+    font-size: .8em;
+    margin-right: 8px;
+}
+
 
 /**
     spinner
@@ -72,10 +111,7 @@ p {
     align-items: center;
     padding-bottom: 8px;
 }
-#synchrotext {
-    font-size: .5em;
-    margin-right: 8px;
-}
+
 .synchro-state .synchro-light {
     height: 5px;
     width: 5px;
