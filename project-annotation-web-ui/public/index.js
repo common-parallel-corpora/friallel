@@ -153,9 +153,6 @@ const loadTranslations = async(tasks) => {
   
     const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
     const docSnap = await getDoc(docRef);
-  
-    
-  
     if(docSnap.exists()){
       var currentTranslations = [];
       var res = docSnap.data();
@@ -190,7 +187,7 @@ const getTranslationTask = async() => {
     where("status", "==", "assigned")
   );
   const tasksQrySnap = await getDocs(tasksQry);
-  if (tasksQrySnap.docs > 0) {
+  if (tasksQrySnap.docs.length > 0) {
     loadTranslations(tasksQrySnap.docs);
   } else {
     //TODO display no task view
