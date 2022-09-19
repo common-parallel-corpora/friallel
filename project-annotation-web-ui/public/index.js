@@ -139,44 +139,54 @@ var defaultLanguage = "eng_Latn";
   }
 } */
 // translation in spécific language for logged user
-const loadTranslation = async(task) => {
-  if(!currentUser) {
-    redirectToLogin()
-    return;
-  }
-  var taskData = task ? task.data() : null;
-  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
-    console.error("error:: task not conform. Task : ", taskData);
-    return;
-  }
-
-  const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
-  const docSnap = await getDoc(docRef);
-
+const loadTranslations = async(tasks) => {
+  tasks.forEach ( async (task, index) => {
+    console.log("DAOUDA loadTranslation debut")
+    if(!currentUser) {
+      redirectToLogin()
+      return;
+    }
+    var taskData = task ? task.data() : null;
+    if(!taskData || !taskData?.collection_id || !taskData?.document_id){
+      console.error("error:: task not conform. Task : ", taskData);
+      return;
+    }
   
-
-  if(docSnap.exists()){
-    var currentTranslations = [];
-    var res = docSnap.data();
-    if(res?.tranlations != null){
-      let trans = null;
-      let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
-      for(trans of res.tranlations) {
-        if(neededLangs.includes(trans?.lang)){
-          currentTranslations.push({
-            lang : trans.lang,
-            translation: trans.translation
-          });
+    const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
+    const docSnap = await getDoc(docRef);
+  
+    
+  
+    if(docSnap.exists()){
+      var currentTranslations = [];
+      var res = docSnap.data();
+      if(res?.tranlations != null){
+        let trans = null;
+        let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
+        for(trans of res.tranlations) {
+          if(neededLangs.includes(trans?.lang)){
+            currentTranslations.push({
+              lang : trans.lang,
+              translation: trans.translation
+            });
+          }
+        }
+        console.log("ui:: currentTranslation : ", currentTranslations);
+        if (index == 0) {
+          updateView(currentTranslations);
+          currentTask = task;
+          console.log("currentTask", currentTask.data())
         }
       }
-      updateView(currentTranslations);
     }
-  }
-  console.log("ui:: currentTranslation : ", currentTranslations);
+  })
+  
+  console.log("DAOUDA loadTranslation  fin")
 }
 
 // Get user first translation task
 const getTranslationTask = async() => {
+  console.log("DAOUDA getTranslationTask debut")
   showLoader();
   const tasksQry = query(
     collection(firestore, TRANSLATION_TASKS), 
@@ -184,11 +194,16 @@ const getTranslationTask = async() => {
     where("status", "==", "assigned")
   );
   const tasksQrySnap = await getDocs(tasksQry);
-  if(tasksQrySnap.docs.length > 0){
-    currentTask = tasksQrySnap.docs[0];
-    console.log("currentTask", currentTask)
-    loadTranslation(currentTask);
+  if (tasksQrySnap.docs > 0) {
+    loadTranslations(tasksQrySnap.docs);
+  } else {
+    //TODO display no task view
+    hideLoader()
   }
+  
+  console.log("Number of tasks=",tasksQrySnap.docs.length)
+  
+  console.log("DAOUDA loadTranslation fin")
 }
 
 /**
@@ -267,7 +282,7 @@ const saveTranslation = async function(translationValue) {
   let now = Timestamp.fromDate(new Date());//Date.now();
 
   //TODO tranlations to translations
-  await updateDoc(docRef, {
+  updateDoc(docRef, {
     tranlations: arrayUnion( {
       created : now,
       lang : LANG_ENCODING,
@@ -275,14 +290,14 @@ const saveTranslation = async function(translationValue) {
       updated : now,
       user_id : currentUser.uid,
     })
-  }).then(docRef => {
-    alert("Translation added successfully");
-    updateTranslationTask(COMPLETED_TASK_STATUS)
   })
   .catch(error => {
       hideLoader();
       console.log(error);
   });
+
+  updateTranslationTask(COMPLETED_TASK_STATUS)
+  console.log("DAOUDA saveTranslation fin ")
 }
 
 const updateTranslationTask = async function(status) {
@@ -297,16 +312,17 @@ const updateTranslationTask = async function(status) {
 
   const docRef = doc(firestore, TRANSLATION_TASKS, currentTask.id);
 
-  await updateDoc(docRef, {
+  updateDoc(docRef, {
     status: status
-  }).then(docRef => {
-    console.log("Translation task updated successfully");
-    getTranslationTask();
   })
   .catch(error => {
       hideLoader();
       console.log(error);
   });
+  console.log("Translation task updated successfully");
+  currentTask = null;
+  getTranslationTask();
+  console.log("DAOUDA updateTranslationTask fin ")
 }
 
 const confirmationModal = new bootstrap.Modal('#confirmationModal', {});
