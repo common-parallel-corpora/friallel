@@ -196,7 +196,7 @@ const getTranslationTask = async() => {
  */
 
 const buildTranslationSourceDom = function(uiTranslation) {
-  return "<div class=\"text-to-translate\"><p>" + uiTranslation.translation + "<p></div>";
+  return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
 }
 
 const updateView = function(currentTranslations){
