@@ -141,7 +141,6 @@ var defaultLanguage = "eng_Latn";
 // translation in spécific language for logged user
 const loadTranslations = async(tasks) => {
   tasks.forEach ( async (task, index) => {
-    console.log("DAOUDA loadTranslation debut")
     if(!currentUser) {
       redirectToLogin()
       return;
@@ -180,13 +179,10 @@ const loadTranslations = async(tasks) => {
       }
     }
   })
-  
-  console.log("DAOUDA loadTranslation  fin")
 }
 
 // Get user first translation task
 const getTranslationTask = async() => {
-  console.log("DAOUDA getTranslationTask debut")
   showLoader();
   const tasksQry = query(
     collection(firestore, TRANSLATION_TASKS), 
@@ -202,8 +198,6 @@ const getTranslationTask = async() => {
   }
   
   console.log("Number of tasks=",tasksQrySnap.docs.length)
-  
-  console.log("DAOUDA loadTranslation fin")
 }
 
 /**
@@ -297,7 +291,6 @@ const saveTranslation = async function(translationValue) {
   });
 
   updateTranslationTask(COMPLETED_TASK_STATUS)
-  console.log("DAOUDA saveTranslation fin ")
 }
 
 const updateTranslationTask = async function(status) {
@@ -322,7 +315,6 @@ const updateTranslationTask = async function(status) {
   console.log("Translation task updated successfully");
   currentTask = null;
   getTranslationTask();
-  console.log("DAOUDA updateTranslationTask fin ")
 }
 
 const confirmationModal = new bootstrap.Modal('#confirmationModal', {});
