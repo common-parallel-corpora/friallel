@@ -73,7 +73,7 @@ body {
     align-items: center;
 }
 #synchrotext {
-    font-size: .8em;
+    font-size: 1.1em;
     margin-right: 8px;
 }
 
@@ -159,9 +159,9 @@ body {
 }
 
 .synchro-state .synchro-light {
-    height: 5px;
-    width: 5px;
-    border-radius: 5px;
+    height: 15px;
+    width: 15px;
+    border-radius: 15px;
     background-color:gray;
 }
 .synchro-state .synchro-light.synchro-light-online {
