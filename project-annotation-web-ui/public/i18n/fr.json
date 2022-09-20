@@ -6,7 +6,7 @@
     "user-name": "Utilisateur",
     "sync-state": "Synchro serveur",
     "app-title": "FS Annotation Web UI",
-    "ignore-translate": "Voulez vous ignorez la traduction courante ?-fr",
-    "apply-translate": "Confirmez vous la soumission de la traduction ?-fr",
+    "ignore-translate": "Voulez vous ignorer la traduction courante ?",
+    "apply-translate": "Confirmez vous la soumission de la traduction ?",
     "translation-label": "Traduction"
 }
