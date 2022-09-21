@@ -1,12 +1,12 @@
 {
-    "loading": "nqo-Chargement...",
-    "confirmation": "nqo-Confirmation",
-    "abort": "nqo-Annuler",
-    "confirm": "nqo-Confirmer",
-    "user-name": "nqo-Utilisateur",
-    "sync-state": "nqo-Synchro serveur",
-    "app-title": "nqo-FS Annotation Web UI",
-    "ignore-translate": "nqo-Voulez vous ignorer la traduction courante ?-nqo",
-    "apply-translate": "nqo-Confirmez vous la soumission de la traduction ?-nqo",
-    "translation-label": "Translation-nqo"
+    "loading": "ߢߎ߲ߠߌ߲",
+    "confirmation": "ߞߊ߲ߠߊߕߍ߮",
+    "abort": "ߊ ߓߟߏߞߊ߬",
+    "confirm": "ߊ ߞߊ߲ߠߊߕߍ߮",
+    "user-name": "ߘߊߟߊߡߌߘߊߟߊ",
+    "sync-state": "ߓߐߟߐߟߐ",
+    "app-title": "FS Annotation Web UI",
+    "ignore-translate": "ߞߊ ߥߐ ߕߐ ߦߋ߲?",
+    "apply-translate": "ߞߊ ߥߐ ߟߊߦߍߟߍ?",
+    "translation-label": "ߒߞߐ"
 }
