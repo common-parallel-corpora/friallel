@@ -10,11 +10,116 @@ p {
     padding: 0;
 }
 
-.container.main {
-    background-color: #CECECE;
+body {
+    background-color: #ebebeb;
+}
+
+.content.main {
+    background-color: #AEAEAE;
     width: 100%;
     height: 100%;
 }
+
+.container-fluid {
+    margin: 0;
+    padding: 0;
+}
+
+
+/**
+    spinner
+*/
+#spinners {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: #000;
+    opacity: .7;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+#spinners.hide {
+    display: none;
+}
+
+/**
+    NavBar
+*/
+.navbar .navbar-brand span, .navbar .user-info span {
+    margin: 0 4px;
+    font-size: 0.875em;
+}
+
+.navbar .navbar-brand {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.navbar .user-info {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.navbar img {
+    height: 40px;
+}
+.navbar .synchro-state {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+}
+#synchrotext {
+    font-size: 1.1em;
+    margin-right: 8px;
+}
+
+
+
+
+/**
+    Content
+*/
+.text-to-translate {
+    min-height: 160px;
+    width: 90%;
+    max-width: 570px;
+    background-color: #FFF;
+    margin: 12px 26px;
+    border-radius: 7px;
+}
+.text-to-translate p {
+    font-weight: 700;
+}
+#resulttext {
+    min-height: 160px;
+    border-radius: 7px;
+    width: 90%;
+    max-width: 850px;
+    font-size: 1.4em;
+    line-height: 23px;
+    padding: 12px 8px;
+}
+.result-bloc p {
+    font-size: 1.2em;
+    color: #000;
+    font-weight: 900;
+    width: min-content;
+}
+.row.actions {
+    /* max-width: 750px;
+    width: 90%; */
+    /* background-color: #4CD964; */
+}
+.row.actions button {
+    width: min-content;
+}
+
+
+
 
 /**
     toolbar
@@ -52,24 +157,20 @@ p {
     align-items: center;
     padding-bottom: 8px;
 }
-#synchrotext {
-    font-size: .5em;
-    margin-right: 8px;
+
+.synchro-state .synchro-light {
+    height: 15px;
+    width: 15px;
+    border-radius: 15px;
+    background-color:gray;
 }
-.synchro-state .synchro-light-online {
-    height: 5px;
-    width: 5px;
-    border-radius: 5px;
+.synchro-state .synchro-light.synchro-light-online {
     background-color:green;
 }
 
-.synchro-state .synchro-light-offline {
-    height: 5px;
-    width: 5px;
-    border-radius: 5px;
+.synchro-state .synchro-light.synchro-light-offline {
     background-color: orange;
 }
-
 
 
 
@@ -96,13 +197,7 @@ p {
     justify-content: center;
     align-items: center;
 }
-.text-to-translate {
-    height: 150px;
-    width: 260px;
-    background-color: #FFF;
-    margin: 12px 26px;
-    border-radius: 4px;
-}
+
 .row.result {
     margin: 0;
     padding: 0;
@@ -112,10 +207,7 @@ p {
     flex-flow: row nowrap;
     justify-content: center;
 }
-#resulttext {
-    width: 260px;
-    font-size: .5em;
-}
+
 .row.result .actions .actions-btns {
     width: 260px;
     display: flex;

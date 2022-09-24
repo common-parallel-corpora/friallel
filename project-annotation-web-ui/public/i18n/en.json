@@ -1,0 +1,12 @@
+{
+    "loading": "en-Chargement...",
+    "confirmation": "en-Confirmation",
+    "abort": "en-Annuler",
+    "confirm": "en-Confirmer",
+    "user-name": "en-Utilisateur",
+    "sync-state": "en-Synchro server",
+    "app-title": "en-FS Annotation Web UI",
+    "ignore-translate": "en-Voulez vous ignorer la traduction courante ?-en",
+    "apply-translate": "en-Confirmez vous la soumission de la traduction ?-en",
+    "translation-label": "Translation"
+}

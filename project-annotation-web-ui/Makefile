@@ -1,5 +1,5 @@
 deploy:
-	firebase deploy
+	firebase deploy --only hosting
 
 deploy-functions:
 	firebase deploy --only functions
