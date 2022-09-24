@@ -1,8 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, updateDoc, Timestamp, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -25,6 +26,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const firestore = getFirestore(app);
+var currentUser;
+var translations = [];
+var translationsIndex = 0;
+
+const auth = getAuth();
 
 console.log("before enableIndexedDbPersistence");
 enableIndexedDbPersistence(firestore)
@@ -41,26 +47,22 @@ enableIndexedDbPersistence(firestore)
           console.log("offline db not implemented");
       }
   });
+// ---------------------------------------------------------
 
 
+// Collections name
+const TRANSLATION_TASKS = "tanslation-tasks"; //TODO rename tanslation-tasks translation-tasks
+const USERS = "users";
+const DATASET_FLORES_DEV = "dataset-flores-dev";
+const DATASET_FLORES_DEVTEST = "dataset-flores-devtest";
+const LANG_ENCODING = "nqo_Nkoo";
+const COMPLETED_TASK_STATUS = "completed";
+const UNASSIGNED_TASK_STATUS = "unassigned";
 
-// fake_user_01
 
-const docRef = doc(firestore, "dataset-flores-dev", "0000000000");
-const docSnap = await getDoc(docRef);
-const doc_data = docSnap.data();
-console.log(doc_data)
-
-// TODO: change this to tranSlations
-doc_data.tranlations.forEach(translation => {
-  const selector = "#" + `txt-${translation.lang}`;
-  console.log("Selector", selector);
-  console.log("Value", translation.translation);
-  $(selector).text(
-    translation.translation
-  );
-});
-
+/**
+ * SYNCHRONISATION STATE
+ */
 
 const database = getDatabase();
 const connectedRef = ref(database, ".info/connected");
@@ -75,3 +77,356 @@ onValue(connectedRef, (snap) => {
   }
 });
 
+/**
+ * UTILISATEUR
+ */
+
+// Sauvegarde
+const saveUser = async(user) => {
+  const userRef = doc(firestore, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  if(!userSnap.exists()) {
+      const newRef = doc(firestore, 'users', user.uid); //TODO check with line #82
+      setDoc(newRef, { name: user.displayName, isActiveTranslator:false, email:user.email }, { merge: true });
+  }
+  currentUser["firestoreUser"] = userSnap.data()
+
+}
+// Mise à jour interface et redirection
+const redirectToLogin = function(){
+  window.location.href = 'login/login.html';
+}
+onAuthStateChanged(auth, (user) => {
+  if(!user){
+    // User is signed out.
+    redirectToLogin()
+    return;
+  }
+  currentUser = user;
+  saveUser(currentUser);
+  $("#username").html(currentUser.displayName);
+  $("#photo").attr("src", currentUser.photoURL);
+  
+  getTranslationTask();
+});
+//---------------------
+
+/**
+ * DATA
+ */
+
+var currentTask = null;
+var currentTranslation = null;
+var defaultLanguage = "eng_Latn";
+
+/* const loadData = async(index) => {
+  if(currentUser) {
+    if(translations.length > 0) {
+      const docRef = doc(firestore, translations[index].collection_id, translations[index].document_id);
+      const docSnap = await getDoc(docRef);
+      const doc_data = docSnap.data();
+    
+      // TODO: change this to tranSlations
+      doc_data.tranlations.forEach(translation => {
+        const selector = "#" + `txt-${translation.lang}`;
+        console.log("Selector", selector);
+        console.log("Value", translation.translation);
+        $(selector).text(
+          translation.translation
+        );
+      });
+    }
+  }
+} */
+// translation in spécific language for logged user
+const loadTranslations = async(tasks) => {
+  tasks.forEach ( async (task, index) => {
+    if(!currentUser) {
+      redirectToLogin()
+      return;
+    }
+    var taskData = task ? task.data() : null;
+    if(!taskData || !taskData?.collection_id || !taskData?.document_id){
+      console.error("error:: task not conform. Task : ", taskData);
+      return;
+    }
+  
+    const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
+    const docSnap = await getDoc(docRef);
+    if(docSnap.exists()){
+      var currentTranslations = [];
+      var res = docSnap.data();
+      if(res?.tranlations != null){
+        let trans = null;
+        let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
+        for(trans of res.tranlations) {
+          if(neededLangs.includes(trans?.lang)){
+            currentTranslations.push({
+              lang : trans.lang,
+              translation: trans.translation
+            });
+          }
+        }
+        console.log("ui:: currentTranslation : ", currentTranslations);
+        if (index == 0) {
+          updateView(currentTranslations);
+          currentTask = task;
+          console.log("currentTask", currentTask.data())
+        }
+      }
+    }
+  })
+}
+
+// Get user first translation task
+const getTranslationTask = async() => {
+  showLoader();
+  const tasksQry = query(
+    collection(firestore, TRANSLATION_TASKS), 
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "assigned")
+  );
+  const tasksQrySnap = await getDocs(tasksQry);
+  if (tasksQrySnap.docs.length > 0) {
+    loadTranslations(tasksQrySnap.docs);
+  } else {
+    //TODO display no task view
+    hideLoader()
+  }
+  
+  console.log("Number of tasks=",tasksQrySnap.docs.length)
+}
+
+/**
+ * VIEW
+ */
+
+const buildTranslationSourceDom = function(uiTranslation) {
+  return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
+}
+
+const updateView = function(currentTranslations){
+  if(!currentTranslations || !(currentTranslations.length > 0)){
+    return;
+  }
+
+  let uiTranslationSourcesDom = ""
+  currentTranslations.forEach ( uiTranslation => {
+    uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
+  })
+  $("#translation_sources").html(uiTranslationSourcesDom);
+  $("#resulttext").val('');
+  hideLoader();
+}
+
+$( "#validate_btn" ).click(function() {
+  let translationValue = $("#resulttext").val().trim();
+  console.log("translationValue", translationValue)
+  if (translationValue.length > 0) {
+    currentInteraction = InteractionType.UPDATE_TRANSLATE;
+    translateModal();
+    confirmationModal.show();
+    //saveTranslation(translationValue)
+  }
+});
+
+const actionSaveTranslation = function(){
+  let translationValue = $("#resulttext").val().trim();
+  console.log("Sauvegarde declenché sur le text : ", translationValue);
+  showLoader()
+  saveTranslation(translationValue);
+  currentInteraction = null;
+}
+const actionSkipTranslation = function(){
+  console.log("Ignorer la traduction declenché sur le text");
+  showLoader();
+  updateTranslationTask(UNASSIGNED_TASK_STATUS);
+  currentInteraction = null;
+}
+
+// INTERACTION VALIDATION
+const InteractionType = {
+	SKIP: {
+    MESSAGE: "ignore-translate",
+    VALUE: 0,
+    ACTION: actionSkipTranslation
+  },
+	UPDATE_TRANSLATE: {
+    MESSAGE: "apply-translate",
+    VALUE: 1,
+    ACTION: actionSaveTranslation
+  }
+};
+var currentInteraction = null;
+// -----------------------------------------------------------------
+
+const saveTranslation = async function(translationValue) {
+  var taskData = currentTask ? currentTask.data() : null;
+  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
+    console.error("error:: task not conform. Task : ", taskData);
+    return;
+  }
+  const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
+
+  console.log("docRef",docRef)
+
+  //TODO format date for firestore
+  let now = Timestamp.fromDate(new Date());//Date.now();
+
+  //TODO tranlations to translations
+  updateDoc(docRef, {
+    tranlations: arrayUnion( {
+      created : now,
+      lang : LANG_ENCODING,
+      translation : translationValue,
+      updated : now,
+      user_id : currentUser.uid,
+    })
+  })
+  .catch(error => {
+      hideLoader();
+      console.log(error);
+  });
+
+  updateTranslationTask(COMPLETED_TASK_STATUS)
+}
+
+const updateTranslationTask = async function(status) {
+
+  var taskData = currentTask ? currentTask.data() : null;
+  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
+    console.error("error:: task not conform. Task : ", taskData);
+    return;
+  }
+
+  var taskData = currentTask ? currentTask.data() : null;
+
+  const docRef = doc(firestore, TRANSLATION_TASKS, currentTask.id);
+
+  updateDoc(docRef, {
+    status: status
+  })
+  .catch(error => {
+      hideLoader();
+      console.log(error);
+  });
+  console.log("Translation task updated successfully");
+  currentTask = null;
+  getTranslationTask();
+}
+
+const confirmationModal = new bootstrap.Modal('#confirmationModal', {});
+//const confirmationModalDOM = document.getElementById('confirmationModal');
+const confirmationModalDOM = $("#confirmationModal");
+
+confirmationModalDOM.on("show.bs.modal", event => {
+  console.log("modal:: etat: Demande d'ouverture");
+  if(InteractionType != null){
+    $("#confirmationModalMessage").attr("data-i18n-key",currentInteraction.MESSAGE);
+  }
+});
+
+$( "#skip_btn" ).click(function() {
+  currentInteraction = InteractionType.SKIP;
+  translateModal();
+  confirmationModal.show();
+});
+$( "#modal-confirm-btn" ).click(function() {
+  currentInteraction.ACTION();
+});
+
+
+
+
+// Spinner
+const hideLoader = function() {
+  $("#spinners").addClass("hide");
+}
+const showLoader = function() {
+  $("#spinners").removeClass("hide");
+}
+
+
+//////////// Translations-------------------------
+// The locale our app first shows
+const defaultLocale = "fr";
+
+
+// The active locale
+let locale;
+
+// Gets filled with active locale translations
+let translationsTexts = {};
+
+// When the page content is ready...
+document.addEventListener("DOMContentLoaded", () => {
+  // Translate the page to the default locale
+  setLocale(defaultLocale);
+});
+
+// Load translations for the given locale and translate
+// the page to this locale
+async function setLocale(newLocale) {
+  if (newLocale === locale) return;
+
+  const newTranslations = 
+    await fetchTranslationsFor(newLocale);
+
+  locale = newLocale;
+  translationsTexts = newTranslations;
+
+  translatePage();
+}
+
+// Retrieve translations JSON object for the given
+// locale over the network
+async function fetchTranslationsFor(newLocale) {
+  const response = await fetch(`/i18n/${newLocale}.json`);
+  return await response.json();
+}
+
+// Replace the inner text of each element that has a
+// data-i18n-key attribute with the translation corresponding
+// to its data-i18n-key
+function translatePage() {
+  document
+    .querySelectorAll("[data-i18n-key]")
+    .forEach(translateElement);
+}
+
+function translateModal() {
+  document.querySelectorAll("modal-body").forEach(translateElement);
+}
+
+// Replace the inner text of the given HTML element
+// with the translation in the active locale,
+// corresponding to the element's data-i18n-key
+function translateElement(element) {
+  const key = element.getAttribute("data-i18n-key");
+  const translation = translationsTexts[key];
+  element.innerText = translation;
+}
+
+// When the page content is ready...
+document.addEventListener("DOMContentLoaded", () => {
+  setLocale(defaultLocale);
+
+  bindLocaleSwitcher(defaultLocale);
+});
+
+// ...
+
+// Whenever the user selects a new locale, we
+// load the locale's translations and update
+// the page
+function bindLocaleSwitcher(initialValue) {
+  const switcher = 
+    document.querySelector("[data-i18n-switcher]");
+
+  switcher.value = initialValue;
+
+  switcher.onchange = (e) => {
+    // Set the locale to the selected option[value]
+    setLocale(e.target.value);
+  };
+}
