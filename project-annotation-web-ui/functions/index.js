@@ -16,21 +16,19 @@ const constantUnassigned="unassigned";
 const constantAssigned="assigned";
 const constantCompleted="completed";
 const constantAccepted="accepted";
+const taskTypeTranslation="translation";
+const taskTypeVerification="verification";
+
+const constantMapKeyAssignedTranslation = "translationassigned";
+const constantMapKeyAssignedVerification = "verificationasssigned";
+const constantMapKeyCompletedTranslation = "translationcompleted";
+const constantMapKeyCompletedVerification = "verificationcompleted";
 
 // Retrieving Data in Configuration File .env
 const maxAssignmentHours = process.env.MAX_TASK_ASSIGNMENT_AGE_HOURS;
 const maxAssignmentSeconds = maxAssignmentHours * 60 * 60;
-const userBucketMaxSize = process.env.USER_BUCKET_MAX_SIZE;
-
-
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
-
+const userTranslationBucketMaxSize = process.env.USER_TRANSLATION_BUCKET_MAX_SIZE;
+const userVerificationBucketMaxSize = process.env.USER_VERIFICATION_BUCKET_MAX_SIZE;
 
 // Listens for new messages added to /messages/:documentId/original and creates an
 // uppercase version of the message to /messages/:documentId/uppercase
@@ -110,7 +108,7 @@ async function assignTaskToUser(userID, taskCountToBeAssigned) {
       "status", "==", constantUnassigned
   ).orderBy(
       "priority", "asc"
-  ).limit(userBucketMaxSize * 2)
+  ).limit(userTranslationBucketMaxSize * 2)
       .get()
       .then((unassignedTasks)=>{
         let assignedTaskCount = 0;
@@ -163,9 +161,9 @@ async function updateUserWorkload() {
         // console.log(userID, " has these tasks assigned : ", assignedTasks.size);
         userWorkLoadSize = assignedTasks.size;
         console.log(activeUser.id, " has the current load size : ", userWorkLoadSize);
-        if (userWorkLoadSize < userBucketMaxSize) {
-          console.log("UserWorkLoad ", userWorkLoadSize, " is under the max :", userBucketMaxSize);
-          const workLoadToAssign = userBucketMaxSize - userWorkLoadSize;
+        if (userWorkLoadSize < userTranslationBucketMaxSize) {
+          console.log("UserWorkLoad ", userWorkLoadSize, " is under the max :", userTranslationBucketMaxSize);
+          const workLoadToAssign = userTranslationBucketMaxSize - userWorkLoadSize;
           await assignTaskToUser(activeUser.id, workLoadToAssign);
         }
       });
@@ -175,7 +173,7 @@ async function updateUserWorkload() {
 
 exports.taskAssignmentAgent = functions.pubsub.schedule("every 1 minutes").onRun(async (context) => {
   console.log("ENV VARIABLE : MAX AGE TASK in HOURS : ", maxAssignmentHours);
-  console.log("ENV VARIABLE : USER BUCKET SIZE MAX : ", userBucketMaxSize);
+  console.log("ENV VARIABLE : USER BUCKET SIZE MAX : ", userTranslationBucketMaxSize);
   console.log(context);
 
   // Step 1: Unassign expired tasks
@@ -183,6 +181,190 @@ exports.taskAssignmentAgent = functions.pubsub.schedule("every 1 minutes").onRun
 
   // Step 2: Assign Tasks to fill user buckets
   await updateUserWorkload();
+});
+
+/** **********REMOVE ALL METHODS UP*************************/
+
+/**
+ * unassign tasks that have been assigned for too long
+ * @return {Promise} the unassignment task
+ */
+async function unassignExpiredAnnotationTasks() {
+  console.log("Unassigned expired Annotation tasks started");
+  const maxAssignedDate = new Date(
+      new Date().getTime() - (maxAssignmentSeconds * 1000)
+  );
+  await db.collection(annotationTaskCollectionName).where(
+      "status", "==", constantAssigned
+  ).where(
+      "assigned_date", "<", maxAssignedDate
+  ).get().then((assignedTasks)=>{
+    assignedTasks.docs.forEach((assignedTask)=>{
+      assignedTask.ref.set({
+        "status": constantUnassigned,
+        "assignee_id": ""
+      }, {merge: true}).then(()=>{
+        console.log("Unassigned expired task assignment # ", assignedTask.id);
+      });
+    });
+  });
+  console.log("Unassigned expired Annotation tasks completed");
+}
+
+/**
+ * Gets the set of translated sentences for the specified user
+ * @param {string} userID the user id
+ * @return {Map} the set of translated sentences
+ */
+async function getUserWorkingSentences(userID) {
+  console.log({"userID": userID});
+  const mapResult = new Map();
+
+  mapResult.set(
+      constantMapKeyAssignedTranslation, new Set()
+  ).set(
+      constantMapKeyAssignedVerification, new Set()
+  ).set(
+      constantMapKeyCompletedTranslation, new Set()
+  ).set(
+      constantMapKeyCompletedVerification, new Set()
+  );
+
+  await db.collection(annotationTaskCollectionName).where(
+      "status", "in", [constantAssigned, constantCompleted]
+  ).where(
+      "assignee_id", "==", userID
+  ).get().then((userPriorTasks)=>{
+    userPriorTasks.forEach((task) => {
+      const taskSentenceReference = `${task.get("collection_id")}/${task.get("document_id")}`;
+      const currentTaskKey = `${task.get("type")}${task.get("status")}`;
+      const taskList = mapResult.get(currentTaskKey);
+      taskList.add(taskSentenceReference);
+      console.log(`Added prior sentence# ${taskSentenceReference} for user user#${userID}`);
+    });
+  });
+
+  return mapResult;
+}
+
+
+/**
+ * Assign translation tasks to the specified user
+ * @param {QueryDocumentSnapshot} user the user to assign tasks to
+ * @param {number} taskCountToBeAssigned the number of tasks to be assigned
+ * @param {string} taskType Task type to assign
+ * @param {Set} excludedSentences Set of excluded sentences
+ */
+async function assignNextTaskToUser(user, taskCountToBeAssigned, taskType, excludedSentences) {
+  let queryUnassignedTasks = db.collection(annotationTaskCollectionName).where(
+      "status", "==", constantUnassigned
+  ).where(
+      "type", "==", taskType
+  );
+  // Add verificication level check for verification
+  if (taskType === taskTypeVerification) {
+    queryUnassignedTasks = queryUnassignedTasks.where(
+        "verification_level", "<=", user.get("verifier_level")
+    );
+  }
+  await queryUnassignedTasks.orderBy(
+      "priority", "asc"
+  ).limit(taskCountToBeAssigned * 10).get()
+      .then((unassignedTasks)=>{
+        const unassignedTaskCountMax = unassignedTasks.size;
+        let assignedTaskCount = 0;
+        const availableTasks = unassignedTasks.docs;
+        for (let availableTaskIndex = 0; availableTaskIndex < unassignedTaskCountMax; availableTaskIndex += 1) {
+          const unassignedTask = availableTasks[availableTaskIndex];
+          const taskSentenceReference = `${unassignedTask.get("collection_id")}/${unassignedTask.get("document_id")}`;
+          if (excludedSentences.has(taskSentenceReference)) {
+            console.log(`Task ${taskType} assignment skipping task#${unassignedTask.id} for user`);
+          } else {
+            console.log(`Awaiting ${taskType} task assignment for task#${unassignedTask.id}`);
+            (async () => {
+              await unassignedTask.ref.set({
+                "status": constantAssigned,
+                "assignee_id": user.id,
+                "assigned_date": new Date()
+              }, {merge: true}).then(()=>{
+                console.log(`Assigned ${taskType} Task# ${unassignedTask.id} to User#${user.id}`);
+              });
+            })();
+            excludedSentences.add(
+                taskSentenceReference
+            );
+            assignedTaskCount += 1;
+            if (assignedTaskCount >= taskCountToBeAssigned) break;
+          }
+        }
+      });
+}
+
+/**
+ * Gets the list of active users (Translators & Verifiers)
+ * @return {Array} the array of active users
+ */
+async function getActiveTranslatorsAndVerifiers() {
+  const activeUsers = [];
+
+  await db.collection(userCollectionName).get().then((activeTranslators)=>{
+    activeTranslators.forEach((user) => {
+      if (user.get("isActiveVerifier") === true ||
+        user.get("isActiveTranslator") === true) {
+        activeUsers.push(user);
+      }
+    });
+  });
+  return activeUsers;
+}
+
+
+/**
+ * Assign translation tasks to all active translators. increase user workloads to their max
+ * @return {Promise} the workload assignment task
+ */
+async function assignAnnotationTasks() {
+  // Retrieve All actives users with buckets not full
+  const activeUsers = await getActiveTranslatorsAndVerifiers();
+  console.log(`List of active Users (translator and Verifier) : ${activeUsers}`);
+  // For each user, fill the bucket by getting the next available tasks
+  activeUsers.forEach(async (activeUser)=>{
+    const userCurrentWorkLoad = await getUserWorkingSentences(activeUser.id);
+    const userTranslationLoadSize = userCurrentWorkLoad.get(constantMapKeyAssignedTranslation).size;
+    const userVerificationLoadSize = userCurrentWorkLoad.get(constantMapKeyAssignedVerification).size;
+    const excludedSentences = new Set([
+      ...userCurrentWorkLoad.get(constantMapKeyAssignedTranslation),
+      ...userCurrentWorkLoad.get(constantMapKeyAssignedVerification),
+      ...userCurrentWorkLoad.get(constantMapKeyCompletedTranslation),
+      ...userCurrentWorkLoad.get(constantMapKeyCompletedVerification)
+    ]);
+
+    if (activeUser.get("isActiveTranslator") === true && userTranslationLoadSize < userTranslationBucketMaxSize) {
+      console.log("User Translation Tasks workload ", userTranslationLoadSize, " is under the max :", userTranslationBucketMaxSize);
+      const workLoadToAssign = userTranslationBucketMaxSize - userTranslationLoadSize;
+      await assignNextTaskToUser(activeUser, workLoadToAssign, taskTypeTranslation, excludedSentences);
+    }
+    // Carry the state of excluded sentences
+    if (activeUser.get("isActiveVerifier") === true && userVerificationLoadSize < userVerificationBucketMaxSize) {
+      console.log("User Verification Tasks workload ", userVerificationLoadSize, " is under the max :", userVerificationBucketMaxSize);
+      const workLoadToAssign = userVerificationBucketMaxSize - userVerificationLoadSize;
+      await assignNextTaskToUser(activeUser, workLoadToAssign, taskTypeVerification, excludedSentences);
+    }
+  });
+}
+
+
+exports.workflowTaskAssignmentAgent = functions.pubsub.schedule("every 5 minutes").onRun(async (context) => {
+  console.log("ENV VARIABLE : MAX AGE TASK in HOURS : ", maxAssignmentHours);
+  console.log("ENV VARIABLE : USER TRANSLATION BUCKET SIZE MAX : ", userTranslationBucketMaxSize);
+  console.log("ENV VARIABLE : USER VERIFICATION BUCKET SIZE MAX : ", userVerificationBucketMaxSize);
+  console.log(context);
+
+  // Step 1: Unassign expired tasks
+  await unassignExpiredAnnotationTasks();
+
+  // Step 2: Assign Annontation Tasks to fill user buckets
+  await assignAnnotationTasks();
 });
 
 /**
@@ -218,6 +400,7 @@ async function createTranslationTask(workflowId) {
     collection_id: workflowDocument.get("collection_id"),
     workflow_id: workflowDocument.id,
     target_lang: workflowDocument.get("target_lang"),
+    priority: workflowDocument.get("priority"),
     assignee_id: "",
     translated_sentence: "",
     creation_date: new Date()
@@ -240,6 +423,7 @@ async function createVerificationTask(workflowId, verificationLevel) {
     collection_id: workflowDocument.get("collection_id"),
     workflow_id: workflowDocument.id,
     target_lang: workflowDocument.get("target_lang"),
+    priority: workflowDocument.get("priority"),
     assignee_id: "",
     verification_status: "",
     translated_sentence: "",
@@ -250,17 +434,19 @@ async function createVerificationTask(workflowId, verificationLevel) {
 /**
  * Complete workflow by changing it status and updating the translations
  * @param {string} workflowId workflow of the task to create
- * @param {string} translation Final translation to update in the translations collection
+ * @param {string} translatedSentence Final translation to update in the translations collection
  */
-async function completeActiveWorkflow(workflowId, translation) {
+async function completeActiveWorkflow(workflowId, translatedSentence) {
   console.log("Workflow #", workflowId, " last verification is done => completing the workflow");
   // Complete the workflow now
   const workflowRef = db.collection(workflowCollectionName).doc(workflowId);
   await workflowRef.set({
-    status: constantCompleted
+    status: constantCompleted,
+    translation: translatedSentence,
+    updated: new Date()
   }, {merge: true});
   // Update translated sentences
-  console.log("Workflow completion final step => Saving translated sentences: ", translation);
+  console.log("Workflow completion final step => Saving translated sentences: ", translatedSentence);
 }
 
 exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async (context) => {
@@ -306,7 +492,7 @@ exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async
               if (lastVerificationTask.get("verification_status") === constantAccepted &&
                 beforeLastVerificationTask.get("verification_status") === constantAccepted) {
                 // Completing active workflow
-                const translatedSentence = "This is a dummy value for NKO translation";
+                const translatedSentence = lastVerificationTask.get("translated_sentence");
                 completeActiveWorkflow(activeWorkflow, translatedSentence);
               } else {
                 console.log("Workflow #", activeWorkflow,
@@ -326,7 +512,7 @@ exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async
             const lastVerificationTask = workFlowTasks.docs[0];
             if (lastVerificationTask.get("status") === constantCompleted) {
               // Completing active workflow
-              const translatedSentence = "This is a dummy value for NKO translation";
+              const translatedSentence = lastVerificationTask.get("translated_sentence");
               completeActiveWorkflow(activeWorkflow, translatedSentence);
             } else {
               console.log("Workflow #", activeWorkflow, " last task is still pending completion");
