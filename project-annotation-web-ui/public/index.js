@@ -169,7 +169,7 @@ const loadTranslations = async(tasks) => {
         }
         console.log("ui:: currentTranslation : ", currentTranslations);
         if (index == 0) {
-          updateView(currentTranslations);
+          updateView(currentTranslations, taskData.target_lang);
           currentTask = task;
           console.log("currentTask", currentTask.data())
         }
@@ -201,19 +201,31 @@ const getTranslationTask = async() => {
  * VIEW
  */
 
+function getTranslationTextDirection(target_lang) {
+  switch(target_lang) {
+    case "nqo_Nkoo":
+      return "rtl cursor-left"; // Right to left, cursor on left
+    default:
+      return "ltr cursor-right"; // Left to right, cursor right
+  }
+}
+
 const buildTranslationSourceDom = function(uiTranslation) {
   return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
 }
 
-const updateView = function(currentTranslations){
+const updateView = function(currentTranslations, target_lang){
   if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
 
-  let uiTranslationSourcesDom = ""
+  let uiTranslationSourcesDom = "";
   currentTranslations.forEach ( uiTranslation => {
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
-  })
+  });
+  let inputDirection = getTranslationTextDirection(target_lang);
+  $("#resulttext").addClass(inputDirection);
+  $("#target_language").text(target_lang);
   $("#translation_sources").html(uiTranslationSourcesDom);
   $("#resulttext").val('');
   hideLoader();
@@ -427,6 +439,11 @@ function bindLocaleSwitcher(initialValue) {
 
   switcher.onchange = (e) => {
     // Set the locale to the selected option[value]
+    if(e.target.value == "nqo"){
+      $("#task-instruction-container").addClass("rtl");
+    } else {
+      $("#task-instruction-container").removeClass("rtl");
+    }
     setLocale(e.target.value);
   };
 }
