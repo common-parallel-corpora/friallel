@@ -256,17 +256,11 @@ async function getUserWorkingSentences(userID) {
  * @param {Set} excludedSentences Set of excluded sentences
  */
 async function assignNextTaskToUser(user, taskCountToBeAssigned, taskType, excludedSentences) {
-  let queryUnassignedTasks = db.collection(annotationTaskCollectionName).where(
+  const queryUnassignedTasks = db.collection(annotationTaskCollectionName).where(
       "status", "==", constantUnassigned
   ).where(
       "type", "==", taskType
   );
-  // Add verificication level check for verification
-  if (taskType === taskTypeVerification) {
-    queryUnassignedTasks = queryUnassignedTasks.where(
-        "verification_level", "<=", user.get("verifier_level")
-    );
-  }
   await queryUnassignedTasks.orderBy(
       "priority", "asc"
   ).limit(taskCountToBeAssigned * 10).get()
@@ -279,6 +273,8 @@ async function assignNextTaskToUser(user, taskCountToBeAssigned, taskType, exclu
           const taskSentenceReference = `${unassignedTask.get("collection_id")}/${unassignedTask.get("document_id")}`;
           if (excludedSentences.has(taskSentenceReference)) {
             console.log(`Task ${taskType} assignment skipping task#${unassignedTask.id} for user`);
+          } else if (unassignedTask.get("verification_level") > user.get("verifier_level")) {
+            console.log(`Task ${taskType} assignment skipping task#${unassignedTask.id} for user : Low level`);
           } else {
             console.log(`Awaiting ${taskType} task assignment for task#${unassignedTask.id}`);
             (async () => {
