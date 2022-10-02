@@ -55,4 +55,6 @@ create-translation-workflows:
 		--env prod \
 		--dataset-names flores-dev flores-devtest \
 		--target-lang nqo_Nkoo \
-		--workflow-name default-translation-workflow
+		--workflow-name default-translation-workflow \
+		--initial-priority 0
+
