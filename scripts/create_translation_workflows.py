@@ -20,8 +20,9 @@ def main(args):
     priority = args.initial_priority
     for dataset_name in args.dataset_names:
         for document_id in generate_sentence_ids(fs_client, dataset_name):
+            collection_id = get_collection_name(dataset_name)
             translation_workflow_doc_data = {
-                "collection_id": get_collection_name(dataset_name),
+                "collection_id": collection_id,
                 "document_id": document_id,
                 "target_lang": args.target_lang,
                 "status": "active",
@@ -29,6 +30,7 @@ def main(args):
                 "priority": priority
             }
             fs_client.collection('workflows').add(translation_workflow_doc_data)
+            print(f"Created workflow for {collection_id}/{document_id}")
             priority += 1
     
 
