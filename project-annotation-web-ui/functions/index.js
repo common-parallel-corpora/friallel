@@ -167,7 +167,7 @@ async function assignAnnotationTasks() {
   const activeUsers = await getActiveTranslatorsAndVerifiers();
   console.log(`List of active Users (translator and Verifier) : ${activeUsers}`);
   // For each user, fill the bucket by getting the next available tasks
-  activeUsers.forEach(async (activeUser)=>{
+  for (const activeUser of activeUsers) {
     const userCurrentWorkLoad = await getUserWorkingSentences(activeUser.id);
     const userTranslationLoadSize = userCurrentWorkLoad.get(constantMapKeyAssignedTranslation).size;
     const userVerificationLoadSize = userCurrentWorkLoad.get(constantMapKeyAssignedVerification).size;
@@ -189,7 +189,7 @@ async function assignAnnotationTasks() {
       const workLoadToAssign = userVerificationBucketMaxSize - userVerificationLoadSize;
       await assignNextTaskToUser(activeUser, workLoadToAssign, taskTypeVerification, excludedSentences);
     }
-  });
+  }
 }
 
 
