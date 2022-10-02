@@ -46,12 +46,11 @@ create-translation-workflows-flores-dev:
 		--dataset-names flores-dev \
 		--target-lang nqo_Nkoo \
 		--workflow-name default-translation-workflow \
-		--initial-priority 1000
-
+		--initial-priority 1001
 
 create-translation-workflows-flores-devtest:
 	python scripts/create_translation_workflows.py  \
 		--dataset-names flores-devtest \
 		--target-lang nqo_Nkoo \
 		--workflow-name default-translation-workflow \
-		--initial-priority  2000
+		--initial-priority 2001
