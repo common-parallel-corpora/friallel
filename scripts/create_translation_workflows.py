@@ -17,7 +17,7 @@ def generate_sentence_ids(fs_client, dataset_name):
 
 def main(args):
     fs_client = firebase_utils.get_firestore_client()
-    priority = 0
+    priority = args.initial_priority
     for dataset_name in args.dataset_names:
         for document_id in generate_sentence_ids(fs_client, dataset_name):
             translation_workflow_doc_data = {
@@ -36,6 +36,7 @@ def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--dataset-names", nargs="+")
     parser.add_argument("--workflow-name", choices=['default-translation-workflow'], required=True)
+    parser.add_argument("--initial-priority", type=int, required=True)
     parser.add_argument("--target-lang", required=True)
     return parser.parse_args()
 
