@@ -10,6 +10,10 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+$("#translationBloc").hide();
+$("#noTranslateFound").hide();
+
 const firebaseConfig = {
   apiKey: "AIzaSyBQja_MCcubMhjmJYhKI50H_Nzn8SkUwgY",
   authDomain: "fs-2022-003-mtannotation.firebaseapp.com",
@@ -51,7 +55,7 @@ enableIndexedDbPersistence(firestore)
 
 
 // Collections name
-const TRANSLATION_TASKS = "tanslation-tasks"; //TODO rename tanslation-tasks translation-tasks
+const TRANSLATION_TASKS = "annotation-tasks"; //TODO rename tanslation-tasks translation-tasks
 const USERS = "users";
 const DATASET_FLORES_DEV = "dataset-flores-dev";
 const DATASET_FLORES_DEVTEST = "dataset-flores-devtest";
@@ -87,7 +91,14 @@ const saveUser = async(user) => {
   const userSnap = await getDoc(userRef);
   if(!userSnap.exists()) {
       const newRef = doc(firestore, 'users', user.uid); //TODO check with line #82
-      setDoc(newRef, { name: user.displayName, isActiveTranslator:false, email:user.email }, { merge: true });
+      setDoc(newRef, { 
+        name: user.displayName, 
+        isActiveTranslator: false, 
+        email: user.email,
+        isActiveTranslator: false,
+        isActiveVerifier: false,
+        verifier_level: 0
+      }, { merge: true });
   }
   currentUser["firestoreUser"] = userSnap.data()
 
@@ -127,7 +138,7 @@ var defaultLanguage = "eng_Latn";
       const doc_data = docSnap.data();
     
       // TODO: change this to tranSlations
-      doc_data.tranlations.forEach(translation => {
+      doc_data.translations.forEach(translation => {
         const selector = "#" + `txt-${translation.lang}`;
         console.log("Selector", selector);
         console.log("Value", translation.translation);
@@ -156,10 +167,10 @@ const loadTranslations = async(tasks) => {
     if(docSnap.exists()){
       var currentTranslations = [];
       var res = docSnap.data();
-      if(res?.tranlations != null){
+      if(res?.translations != null){
         let trans = null;
         let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
-        for(trans of res.tranlations) {
+        for(trans of res.translations) {
           if(neededLangs.includes(trans?.lang)){
             currentTranslations.push({
               lang : trans.lang,
@@ -182,15 +193,20 @@ const loadTranslations = async(tasks) => {
 const getTranslationTask = async() => {
   showLoader();
   const tasksQry = query(
-    collection(firestore, TRANSLATION_TASKS), 
+    collection(firestore, TRANSLATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
-    where("status", "==", "assigned")
+    where("status", "==", "assigned"), 
+    where("type", "==", "translation")
   );
   const tasksQrySnap = await getDocs(tasksQry);
   if (tasksQrySnap.docs.length > 0) {
+    $("#translationBloc").show();
+    $("#noTranslateFound").hide();
     loadTranslations(tasksQrySnap.docs);
   } else {
     //TODO display no task view
+    $("#translationBloc").hide();
+    $("#noTranslateFound").show();
     hideLoader()
   }
   
@@ -252,7 +268,7 @@ const actionSaveTranslation = function(){
 const actionSkipTranslation = function(){
   console.log("Ignorer la traduction declenché sur le text");
   showLoader();
-  updateTranslationTask(UNASSIGNED_TASK_STATUS);
+  updateTranslationTask(UNASSIGNED_TASK_STATUS, "");
   currentInteraction = null;
 }
 
@@ -285,9 +301,9 @@ const saveTranslation = async function(translationValue) {
   //TODO format date for firestore
   let now = Timestamp.fromDate(new Date());//Date.now();
 
-  //TODO tranlations to translations
-  updateDoc(docRef, {
-    tranlations: arrayUnion( {
+  //TODO translations to translations
+  /*updateDoc(docRef, {
+    translations: arrayUnion( {
       created : now,
       lang : LANG_ENCODING,
       translation : translationValue,
@@ -298,12 +314,12 @@ const saveTranslation = async function(translationValue) {
   .catch(error => {
       hideLoader();
       console.log(error);
-  });
+  });*/
 
-  updateTranslationTask(COMPLETED_TASK_STATUS)
+  updateTranslationTask(COMPLETED_TASK_STATUS, translationValue)
 }
 
-const updateTranslationTask = async function(status) {
+const updateTranslationTask = async function(status, newValue) {
 
   var taskData = currentTask ? currentTask.data() : null;
   if(!taskData || !taskData?.collection_id || !taskData?.document_id){
@@ -316,7 +332,9 @@ const updateTranslationTask = async function(status) {
   const docRef = doc(firestore, TRANSLATION_TASKS, currentTask.id);
 
   updateDoc(docRef, {
-    status: status
+    status: status,
+    translated_sentence: newValue,
+    updated_date : Timestamp.fromDate(new Date())
   })
   .catch(error => {
       hideLoader();
