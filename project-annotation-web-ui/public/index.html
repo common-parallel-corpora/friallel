@@ -105,19 +105,56 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="confirmationModal"
+      tabindex="-1"
+      aria-labelledby="confirmationModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="confirmationModalLabel" data-i18n-key="confirmation">Confirmation</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5
+              class="modal-title"
+              id="confirmationModalLabel"
+              data-i18n-key="confirmation"
+            >
+              Confirmation
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
-          <div class="modal-body" id="confirmationModalMessage" data-i18n-key="ignore-translate">
-            {% comment %} Confirmez vous la soumission de la traduction ? {% endcomment %}
+          <div
+            class="modal-body"
+            id="confirmationModalMessage"
+            data-i18n-key="ignore-translate"
+          >
+            {% comment %} Confirmez vous la soumission de la traduction ? {%
+            endcomment %}
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n-key="abort">Annuler</button>
-            <button id="modal-confirm-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n-key="confirm">Confirmer</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+              data-i18n-key="abort"
+            >
+              Annuler
+            </button>
+            <button
+              id="modal-confirm-btn"
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+              data-i18n-key="confirm"
+            >
+              Confirmer
+            </button>
           </div>
         </div>
       </div>
@@ -155,57 +192,61 @@
       </div>
     </div>
 
-    <div class="container" id="translationBloc">
-      <div
-        id="translation_sources"
-        class="row d-flex justify-content-center mb-2"
-      >
-        <!-- translation text will be injected here -->
+    <section id="onglet">
+      <ul class="container" id="ul">
+        <li><a id="translorTab" href="#">Translator</a></li>
+        <li><a id="verifierTab" href="#">Validator</a></li>
+      </ul>
+      <div class="container" id="translationBloc">
+        <div
+          id="translation_sources"
+          class="row d-flex justify-content-center mb-2"
+        >
+          <!-- translation text will be injected here -->
+        </div>
+        <div class="row result-bloc d-flex flex-column align-items-center mb-1">
+          <p id="task-instruction-container">
+            <span data-i18n-key="translation-label">Traduction</span>
+            <span>&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+            <span id="target_language"></span>
+          </p>
+          <textarea id="resulttext" type="text" rows="9"></textarea>
+        </div>
+        <div class="row actions d-flex flex-row justify-content-center pt-2">
+          <button id="skip_btn" type="button" class="btn btn-warning mx-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-x"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"
+              />
+            </svg>
+          </button>
+          <button id="validate_btn" type="button" class="btn btn-success mx-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-check"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
-      <div class="row result-bloc d-flex flex-column align-items-center mb-1">
-        <p id="task-instruction-container">
-          <span data-i18n-key="translation-label">Traduction</span>
-          <span>&nbsp;&nbsp;:&nbsp;&nbsp;</span>
-          <span id="target_language"></span>
-        </p>
-        <textarea id="resulttext" type="text" rows="9"></textarea>
+
+      <div class="container" id="noTranslateFound">
+        <p>Aucune traduction disponible</p>
       </div>
-      <div class="row actions d-flex flex-row justify-content-center pt-2">
-        <button id="skip_btn" type="button" class="btn btn-warning mx-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            class="bi bi-x"
-            viewBox="0 0 16 16"
-          >
-            <path
-              d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"
-            />
-          </svg>
-        </button>
-        <button id="validate_btn" type="button" class="btn btn-success mx-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            class="bi bi-check"
-            viewBox="0 0 16 16"
-          >
-            <path
-              d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"
-            />
-          </svg>
-        </button>
-
-
-      </div>
-    </div>
-
-    <div class="container" id="noTranslateFound">
-    <p>Aucune traduction disponible</p>
-    </div>
+    </section>
   </body>
 </html>
