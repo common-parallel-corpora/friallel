@@ -281,7 +281,6 @@ $( "#validate_btn" ).click(function() {
   console.log("translationValue", translationValue)
   if (translationValue.length > 0) {
     currentInteraction = InteractionType.UPDATE_TRANSLATE;
-    translateModal();
     confirmationModal.show();
     //saveTranslation(translationValue)
   }
@@ -382,12 +381,12 @@ confirmationModalDOM.on("show.bs.modal", event => {
   console.log("modal:: etat: Demande d'ouverture");
   if(InteractionType != null){
     $("#confirmationModalMessage").attr("data-i18n-key",currentInteraction.MESSAGE);
+    translateModal();
   }
 });
 
 $( "#skip_btn" ).click(function() {
   currentInteraction = InteractionType.SKIP;
-  translateModal();
   confirmationModal.show();
 });
 $( "#modal-confirm-btn" ).click(function() {
@@ -428,6 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function setLocale(newLocale) {
   if (newLocale === locale) return;
 
+  
   const newTranslations = 
     await fetchTranslationsFor(newLocale);
 
@@ -454,7 +454,9 @@ function translatePage() {
 }
 
 function translateModal() {
-  document.querySelectorAll("modal-body").forEach(translateElement);
+  $(".modal-dialog [data-i18n-key]").each((idx, el) => {
+    $(el).html(translationsTexts[$(el).attr("data-i18n-key")]);
+  });
 }
 
 // Replace the inner text of the given HTML element
