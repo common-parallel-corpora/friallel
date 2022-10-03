@@ -13,6 +13,8 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 
 $("#translationBloc").hide();
 $("#noTranslateFound").hide();
+$("#translatorTab").hide();
+$("#verifierTab").hide();
 
 const firebaseConfig = {
   apiKey: "AIzaSyBQja_MCcubMhjmJYhKI50H_Nzn8SkUwgY",
@@ -31,6 +33,7 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const firestore = getFirestore(app);
 var currentUser;
+var firestoreUser;
 var translations = [];
 var translationsIndex = 0;
 
@@ -55,11 +58,8 @@ enableIndexedDbPersistence(firestore)
 
 
 // Collections name
-const TRANSLATION_TASKS = "annotation-tasks"; //TODO rename tanslation-tasks translation-tasks
+const ANNOTATION_TASKS = "annotation-tasks"; //TODO rename tanslation-tasks translation-tasks
 const USERS = "users";
-const DATASET_FLORES_DEV = "dataset-flores-dev";
-const DATASET_FLORES_DEVTEST = "dataset-flores-devtest";
-const LANG_ENCODING = "nqo_Nkoo";
 const COMPLETED_TASK_STATUS = "completed";
 const UNASSIGNED_TASK_STATUS = "unassigned";
 
@@ -100,9 +100,26 @@ const saveUser = async(user) => {
         verifier_level: 0
       }, { merge: true });
   }
-  currentUser["firestoreUser"] = userSnap.data()
-
+  currentUser["firestoreUser"] = userSnap.data();
+  firestoreUser = currentUser.firestoreUser;
+  showTabs();
+  getTranslationTask();
 }
+
+
+var tabTranslate = document.getElementById("translorTab");
+var tabVerify = document.getElementById("verifierTab");
+
+const showTabs = function() {
+  firestoreUser.isActiveTranslator ? $("#translorTab").show() : $('#translorTab').hide();
+  firestoreUser.isActiveVerifier ? $("#verifierTab").show() : $('#verifierTab').hide();
+  if (firestoreUser.isActiveTranslator) {
+    tabTranslate.className="active";
+  } else if (firestoreUser.isActiveVerifier) {
+    tabVerify.className="active";
+  }
+}
+
 // Mise à jour interface et redirection
 const redirectToLogin = function(){
   window.location.href = 'login/login.html';
@@ -117,8 +134,6 @@ onAuthStateChanged(auth, (user) => {
   saveUser(currentUser);
   $("#username").html(currentUser.displayName);
   $("#photo").attr("src", currentUser.photoURL);
-  
-  getTranslationTask();
 });
 //---------------------
 
@@ -129,6 +144,31 @@ onAuthStateChanged(auth, (user) => {
 var currentTask = null;
 var currentTranslation = null;
 var defaultLanguage = "eng_Latn";
+var activeOnglet;
+
+
+function nonactive(){
+  tabTranslate.className = "";
+  tabVerify.className = "";
+}
+
+function active(moi){
+  nonactive(); // nettoyage
+  moi.className="active"; // je deviens active
+  getTranslationTask();
+}
+
+tabTranslate.addEventListener("click",function(){
+  //contenu.innerHTML = "article 1";
+  activeOnglet = "traduction";
+  active(this);
+})
+
+tabVerify.addEventListener("click",function(){
+  //contenu.innerHTML = "article 2";
+  activeOnglet = "verification";
+  active(this);
+})
 
 /* const loadData = async(index) => {
   if(currentUser) {
@@ -191,12 +231,12 @@ const loadTranslations = async(tasks) => {
 
 // Get user first translation task
 const getTranslationTask = async() => {
+  console.log(activeOnglet);
   showLoader();
   const tasksQry = query(
-    collection(firestore, TRANSLATION_TASKS),
+    collection(firestore, ANNOTATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
-    where("status", "==", "assigned"), 
-    where("type", "==", "translation")
+    where("status", "==", "assigned")
   );
   const tasksQrySnap = await getDocs(tasksQry);
   if (tasksQrySnap.docs.length > 0) {
@@ -329,7 +369,7 @@ const updateTranslationTask = async function(status, newValue) {
 
   var taskData = currentTask ? currentTask.data() : null;
 
-  const docRef = doc(firestore, TRANSLATION_TASKS, currentTask.id);
+  const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
 
   updateDoc(docRef, {
     status: status,
