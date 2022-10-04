@@ -68,6 +68,8 @@ const REJECTED_TASK_STATUS = "rejected";
 const TRANSLATION_TAB_NAME = "translation";
 const VERIFICATION_TAB_NAME = "verification";
 
+const UI_LANG_KEY = "uiLang";
+
 
 /**
  * SYNCHRONISATION STATE
@@ -259,7 +261,7 @@ const getTranslationTasks = async() => {
     where("type", "==", "translation")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
-    updateTranslationView(currentTranslations);
+    updateTranslationView(currentTranslations, task.data().target_lang);
     currentTask = task;
   });
 }
@@ -313,7 +315,7 @@ const buildTranslationSourceDom = function(uiTranslation) {
   return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
 }
 
-const updateTranslationView = function(currentTranslations){
+const updateTranslationView = function(currentTranslations, target_lang){
   if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
@@ -498,7 +500,9 @@ const showLoader = function() {
 
 //////////// Translations-------------------------
 // The locale our app first shows
-const defaultLocale = "fr";
+var defaultLocale = "fr";
+var uiLang = localStorage.getItem(UI_LANG_KEY);
+defaultLocale = uiLang != null ? uiLang : defaultLocale;
 
 
 // The active locale
@@ -579,6 +583,9 @@ function bindLocaleSwitcher(initialValue) {
 
   switcher.onchange = (e) => {
     // Set the locale to the selected option[value]
+
+    localStorage.setItem(UI_LANG_KEY, e.target.value);
+
     if(e.target.value == "nqo"){
       $("#task-instruction-container").addClass("rtl");
     } else {
