@@ -8,5 +8,9 @@
     "app-title": "en-FS Annotation Web UI",
     "ignore-translate": "en-Voulez vous ignorer la traduction courante ?-en",
     "apply-translate": "en-Confirmez vous la soumission de la traduction ?-en",
-    "translation-label": "Translation to"
+    "translation-label": "Translation to",
+    "ignore-verification": "en-Voulez vous ignorer la vérification courante ?-en",
+    "apply-verification": "en-Confirmez vous la soumission de la vérification ?-en",
+    "translation-tab-name": "Translations",
+    "verification-tab-name": "Verifications"
 }
