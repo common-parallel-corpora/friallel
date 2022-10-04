@@ -8,5 +8,9 @@
     "app-title": "FS Annotation Web UI",
     "ignore-translate": "ߞߊ ߥߐ ߕߐ ߦߋ߲?",
     "apply-translate": "ߞߊ ߥߐ ߟߊߦߍߟߍ?",
-    "translation-label": "ߘߟߊߡߌߘߊ߫ ߞߊ߲"
+    "translation-label": "ߘߟߊߡߌߘߊ߫ ߞߊ߲",
+    "ignore-verification": "nqo-Voulez vous ignorer la vérification courante ?-nqo",
+    "apply-verification": "nqo-Confirmez vous la soumission de la vérification ?-nqo",
+    "translation-tab-name": "nqo-Traductions-nqo",
+    "verification-tab-name": "nqo-Vérifications-npo"
 }

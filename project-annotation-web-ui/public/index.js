@@ -10,6 +10,12 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+$("#translationBloc").hide();
+$("#noTranslateFound").hide();
+$("#translatorTab").hide();
+$("#verifierTab").hide();
+
 const firebaseConfig = {
   apiKey: "AIzaSyBQja_MCcubMhjmJYhKI50H_Nzn8SkUwgY",
   authDomain: "fs-2022-003-mtannotation.firebaseapp.com",
@@ -27,8 +33,7 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const firestore = getFirestore(app);
 var currentUser;
-var translations = [];
-var translationsIndex = 0;
+var firestoreUser;
 
 const auth = getAuth();
 
@@ -51,13 +56,19 @@ enableIndexedDbPersistence(firestore)
 
 
 // Collections name
-const TRANSLATION_TASKS = "tanslation-tasks"; //TODO rename tanslation-tasks translation-tasks
+const ANNOTATION_TASKS = "annotation-tasks"; //TODO rename tanslation-tasks translation-tasks
 const USERS = "users";
-const DATASET_FLORES_DEV = "dataset-flores-dev";
-const DATASET_FLORES_DEVTEST = "dataset-flores-devtest";
-const LANG_ENCODING = "nqo_Nkoo";
 const COMPLETED_TASK_STATUS = "completed";
 const UNASSIGNED_TASK_STATUS = "unassigned";
+const ACCEPTED_TASK_STATUS = "accepted";
+const REJECTED_TASK_STATUS = "rejected";
+
+
+//tabs names
+const TRANSLATION_TAB_NAME = "translation";
+const VERIFICATION_TAB_NAME = "verification";
+
+const UI_LANG_KEY = "uiLang";
 
 
 /**
@@ -87,11 +98,36 @@ const saveUser = async(user) => {
   const userSnap = await getDoc(userRef);
   if(!userSnap.exists()) {
       const newRef = doc(firestore, 'users', user.uid); //TODO check with line #82
-      setDoc(newRef, { name: user.displayName, isActiveTranslator:false, email:user.email }, { merge: true });
+      setDoc(newRef, { 
+        name: user.displayName, 
+        isActiveTranslator: false, 
+        email: user.email,
+        isActiveTranslator: false,
+        isActiveVerifier: false,
+        verifier_level: 0
+      }, { merge: true });
   }
-  currentUser["firestoreUser"] = userSnap.data()
-
+  currentUser["firestoreUser"] = userSnap.data();
+  firestoreUser = currentUser.firestoreUser;
+  getAllTasks();
 }
+
+
+var tabTranslate = document.getElementById("translorTab");
+var tabVerify = document.getElementById("verifierTab");
+
+const showTabs = function() {
+  firestoreUser.isActiveTranslator ? $("#translorTab").show() : $('#translorTab').hide();
+  firestoreUser.isActiveVerifier ? $("#verifierTab").show() : $('#verifierTab').hide();
+  if (firestoreUser.isActiveTranslator) {
+    tabTranslate.className="active";
+    enableTranslateTab();
+  } else if (firestoreUser.isActiveVerifier) {
+    tabVerify.className="active";
+    enableVerificationTab();
+  }
+}
+
 // Mise à jour interface et redirection
 const redirectToLogin = function(){
   window.location.href = 'login/login.html';
@@ -106,8 +142,6 @@ onAuthStateChanged(auth, (user) => {
   saveUser(currentUser);
   $("#username").html(currentUser.displayName);
   $("#photo").attr("src", currentUser.photoURL);
-  
-  getTranslationTask();
 });
 //---------------------
 
@@ -118,28 +152,45 @@ onAuthStateChanged(auth, (user) => {
 var currentTask = null;
 var currentTranslation = null;
 var defaultLanguage = "eng_Latn";
+var activeTab;
 
-/* const loadData = async(index) => {
-  if(currentUser) {
-    if(translations.length > 0) {
-      const docRef = doc(firestore, translations[index].collection_id, translations[index].document_id);
-      const docSnap = await getDoc(docRef);
-      const doc_data = docSnap.data();
-    
-      // TODO: change this to tranSlations
-      doc_data.tranlations.forEach(translation => {
-        const selector = "#" + `txt-${translation.lang}`;
-        console.log("Selector", selector);
-        console.log("Value", translation.translation);
-        $(selector).text(
-          translation.translation
-        );
-      });
-    }
-  }
-} */
+var currentTextToVerify = null;
+
+
+function inactiveAllTab(){
+  tabTranslate.className = "";
+  tabVerify.className = "";
+}
+
+function active(currentTab){
+  inactiveAllTab(); // nettoyage
+  currentTab.className="active"; // je deviens active
+}
+
+tabTranslate.addEventListener("click",function(){
+  //contenu.innerHTML = "article 1";
+  enableTranslateTab();
+})
+
+tabVerify.addEventListener("click",function(){
+  //contenu.innerHTML = "article 2";
+  enableVerificationTab();
+})
+
+function enableTranslateTab() {
+  activeTab = TRANSLATION_TAB_NAME;
+  active(tabTranslate);
+  getTranslationTasks();
+}
+
+function enableVerificationTab() {
+  activeTab = VERIFICATION_TAB_NAME;
+  active(tabVerify);
+  getVerificationTasks()
+}
+
 // translation in spécific language for logged user
-const loadTranslations = async(tasks) => {
+const loadTranslations = async(tasks, callback) => {
   tasks.forEach ( async (task, index) => {
     if(!currentUser) {
       redirectToLogin()
@@ -156,10 +207,10 @@ const loadTranslations = async(tasks) => {
     if(docSnap.exists()){
       var currentTranslations = [];
       var res = docSnap.data();
-      if(res?.tranlations != null){
+      if(res?.translations != null) {
         let trans = null;
         let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
-        for(trans of res.tranlations) {
+        for(trans of res.translations) {
           if(neededLangs.includes(trans?.lang)){
             currentTranslations.push({
               lang : trans.lang,
@@ -167,30 +218,80 @@ const loadTranslations = async(tasks) => {
             });
           }
         }
-        console.log("ui:: currentTranslation : ", currentTranslations);
-        if (index == 0) {
-          updateView(currentTranslations, taskData.target_lang);
-          currentTask = task;
-          console.log("currentTask", currentTask.data())
+        console.log("taskData: ", taskData);
+        var textToVerify = null;
+        if (taskData.type =="verification") {
+          textToVerify = await getTextToVerify(taskData);
+        }
+        if (index == 0 ) {
+          callback(task, currentTranslations, textToVerify);
         }
       }
     }
   })
 }
 
-// Get user first translation task
-const getTranslationTask = async() => {
-  showLoader();
+const getTextToVerify = async(task) => {
   const tasksQry = query(
-    collection(firestore, TRANSLATION_TASKS), 
+    collection(firestore, ANNOTATION_TASKS),
+    where("workflow_id", "==", task.workflow_id),
+    where("status", "==", "completed"), 
+    (task.verification_level == 1) ? where("type", "==", "translation") : where("verification_level", "==", task.verification_level -1)
+  );
+
+  const tasksQrySnap = await getDocs(tasksQry);
+  return tasksQrySnap.docs.length > 0 && tasksQrySnap.docs[0].data()?.translated_sentence ? tasksQrySnap.docs[0].data().translated_sentence : "";
+}
+
+const getAllTasks = async() => {
+  const tasksQry = query(
+    collection(firestore, ANNOTATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
     where("status", "==", "assigned")
   );
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {});
+  showTabs();
+}
+
+const getTranslationTasks = async() => {
+  const tasksQry = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "assigned"),
+    where("type", "==", "translation")
+  );
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
+    updateTranslationView(currentTranslations, task.data().target_lang);
+    currentTask = task;
+  });
+}
+
+const getVerificationTasks = async() => {
+  const tasksQry = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "assigned"),
+    where("type", "==", "verification")
+  );
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
+    updateVerificationView(currentTranslations, textToVerify);
+    currentTask = task;
+  });
+}
+
+const getTasks = async(tasksQry, callback) => {
+  console.log(activeTab);
+  showLoader();
+ 
   const tasksQrySnap = await getDocs(tasksQry);
   if (tasksQrySnap.docs.length > 0) {
-    loadTranslations(tasksQrySnap.docs);
+    $("#translationBloc").show();
+    $("#noTranslateFound").hide();
+    await loadTranslations(tasksQrySnap.docs, callback);
   } else {
     //TODO display no task view
+    $("#translationBloc").hide();
+    $("#noTranslateFound").show();
     hideLoader()
   }
   
@@ -214,7 +315,7 @@ const buildTranslationSourceDom = function(uiTranslation) {
   return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
 }
 
-const updateView = function(currentTranslations, target_lang){
+const updateTranslationView = function(currentTranslations, target_lang){
   if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
@@ -231,12 +332,26 @@ const updateView = function(currentTranslations, target_lang){
   hideLoader();
 }
 
+const updateVerificationView = function(currentTranslations, textToVerify) {
+  if(!currentTranslations || !(currentTranslations.length > 0)){
+    return;
+  }
+
+  let uiTranslationSourcesDom = ""
+  currentTranslations.forEach ( uiTranslation => {
+    uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
+  })
+  currentTextToVerify = textToVerify
+  $("#translation_sources").html(uiTranslationSourcesDom);
+  $("#resulttext").val(textToVerify);
+  hideLoader();
+}
+
 $( "#validate_btn" ).click(function() {
   let translationValue = $("#resulttext").val().trim();
   console.log("translationValue", translationValue)
   if (translationValue.length > 0) {
-    currentInteraction = InteractionType.UPDATE_TRANSLATE;
-    translateModal();
+    currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.UPDATE_TRANSLATE : InteractionType.UPDATE_VERIFICATION;
     confirmationModal.show();
     //saveTranslation(translationValue)
   }
@@ -246,19 +361,35 @@ const actionSaveTranslation = function(){
   let translationValue = $("#resulttext").val().trim();
   console.log("Sauvegarde declenché sur le text : ", translationValue);
   showLoader()
-  saveTranslation(translationValue);
+  updateTranslationTask(COMPLETED_TASK_STATUS, translationValue);
   currentInteraction = null;
 }
 const actionSkipTranslation = function(){
   console.log("Ignorer la traduction declenché sur le text");
   showLoader();
-  updateTranslationTask(UNASSIGNED_TASK_STATUS);
+  updateTranslationTask(UNASSIGNED_TASK_STATUS, "");
+  currentInteraction = null;
+}
+
+const actionSaveVerification = function(){
+  let verifiedText = $("#resulttext").val().trim();
+  console.log("Sauvegarde du texte de vérification : ", verifiedText);
+  console.log("Sauvegarde du texte de vérification currentTextToVerify : ", currentTextToVerify);
+  showLoader();
+  var verificationStatus = currentTextToVerify == verifiedText ? ACCEPTED_TASK_STATUS : REJECTED_TASK_STATUS;
+  updateVerificationTask(COMPLETED_TASK_STATUS, verificationStatus, verifiedText);
+  currentInteraction = null;
+}
+const actionSkipVerification = function(){
+  console.log("Ignorer la tache de vérification");
+  showLoader();
+  updateVerificationTask(UNASSIGNED_TASK_STATUS, "", "");
   currentInteraction = null;
 }
 
 // INTERACTION VALIDATION
 const InteractionType = {
-	SKIP: {
+	SKIP_TRANSLATION: {
     MESSAGE: "ignore-translate",
     VALUE: 0,
     ACTION: actionSkipTranslation
@@ -267,56 +398,42 @@ const InteractionType = {
     MESSAGE: "apply-translate",
     VALUE: 1,
     ACTION: actionSaveTranslation
+  },
+  SKIP_VERIFICATION: {
+    MESSAGE: "ignore-verification",
+    VALUE: 2,
+    ACTION: actionSkipVerification
+  },
+	UPDATE_VERIFICATION: {
+    MESSAGE: "apply-verification",
+    VALUE: 3,
+    ACTION: actionSaveVerification
   }
 };
 var currentInteraction = null;
 // -----------------------------------------------------------------
 
-const saveTranslation = async function(translationValue) {
+function isValidTask() {
   var taskData = currentTask ? currentTask.data() : null;
   if(!taskData || !taskData?.collection_id || !taskData?.document_id){
     console.error("error:: task not conform. Task : ", taskData);
-    return;
+    return false;
   }
-  const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
-
-  console.log("docRef",docRef)
-
-  //TODO format date for firestore
-  let now = Timestamp.fromDate(new Date());//Date.now();
-
-  //TODO tranlations to translations
-  updateDoc(docRef, {
-    tranlations: arrayUnion( {
-      created : now,
-      lang : LANG_ENCODING,
-      translation : translationValue,
-      updated : now,
-      user_id : currentUser.uid,
-    })
-  })
-  .catch(error => {
-      hideLoader();
-      console.log(error);
-  });
-
-  updateTranslationTask(COMPLETED_TASK_STATUS)
+  return true;
 }
 
-const updateTranslationTask = async function(status) {
+const updateTranslationTask = async function(status, newValue) {
 
-  var taskData = currentTask ? currentTask.data() : null;
-  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
-    console.error("error:: task not conform. Task : ", taskData);
+  if (!isValidTask()) {
     return;
   }
 
-  var taskData = currentTask ? currentTask.data() : null;
-
-  const docRef = doc(firestore, TRANSLATION_TASKS, currentTask.id);
+  const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
 
   updateDoc(docRef, {
-    status: status
+    status: status,
+    translated_sentence: newValue,
+    updated_date : Timestamp.fromDate(new Date())
   })
   .catch(error => {
       hideLoader();
@@ -324,7 +441,29 @@ const updateTranslationTask = async function(status) {
   });
   console.log("Translation task updated successfully");
   currentTask = null;
-  getTranslationTask();
+  getTranslationTasks();
+}
+const updateVerificationTask = async function(status, verificationStatus, newValue) {
+
+  if (!isValidTask()) {
+    return;
+  }
+
+  const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
+
+  updateDoc(docRef, {
+    status: status,
+    verification_status: verificationStatus,
+    translated_sentence: newValue,
+    updated_date : Timestamp.fromDate(new Date())
+  })
+  .catch(error => {
+      hideLoader();
+      console.log(error);
+  });
+  console.log("Verification task updated successfully");
+  currentTask = null;
+  getVerificationTasks();
 }
 
 const confirmationModal = new bootstrap.Modal('#confirmationModal', {});
@@ -335,12 +474,12 @@ confirmationModalDOM.on("show.bs.modal", event => {
   console.log("modal:: etat: Demande d'ouverture");
   if(InteractionType != null){
     $("#confirmationModalMessage").attr("data-i18n-key",currentInteraction.MESSAGE);
+    translateModal();
   }
 });
 
 $( "#skip_btn" ).click(function() {
-  currentInteraction = InteractionType.SKIP;
-  translateModal();
+  currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.SKIP_TRANSLATION : InteractionType.SKIP_VERIFICATION;
   confirmationModal.show();
 });
 $( "#modal-confirm-btn" ).click(function() {
@@ -361,7 +500,9 @@ const showLoader = function() {
 
 //////////// Translations-------------------------
 // The locale our app first shows
-const defaultLocale = "fr";
+var defaultLocale = "fr";
+var uiLang = localStorage.getItem(UI_LANG_KEY);
+defaultLocale = uiLang != null ? uiLang : defaultLocale;
 
 
 // The active locale
@@ -381,6 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function setLocale(newLocale) {
   if (newLocale === locale) return;
 
+  
   const newTranslations = 
     await fetchTranslationsFor(newLocale);
 
@@ -407,7 +549,9 @@ function translatePage() {
 }
 
 function translateModal() {
-  document.querySelectorAll("modal-body").forEach(translateElement);
+  $(".modal-dialog [data-i18n-key]").each((idx, el) => {
+    $(el).html(translationsTexts[$(el).attr("data-i18n-key")]);
+  });
 }
 
 // Replace the inner text of the given HTML element
@@ -439,6 +583,9 @@ function bindLocaleSwitcher(initialValue) {
 
   switcher.onchange = (e) => {
     // Set the locale to the selected option[value]
+
+    localStorage.setItem(UI_LANG_KEY, e.target.value);
+
     if(e.target.value == "nqo"){
       $("#task-instruction-container").addClass("rtl");
     } else {
