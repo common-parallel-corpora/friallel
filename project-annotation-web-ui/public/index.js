@@ -100,7 +100,7 @@ const saveUser = async(user) => {
   }
   currentUser["firestoreUser"] = userSnap.data();
   firestoreUser = currentUser.firestoreUser;
-  getTranslationTask();
+  getAllTasks();
 }
 
 
@@ -143,7 +143,7 @@ onAuthStateChanged(auth, (user) => {
 var currentTask = null;
 var currentTranslation = null;
 var defaultLanguage = "eng_Latn";
-var activeOnglet;
+var activeTab;
 
 
 function inactiveAllTab(){
@@ -154,7 +154,6 @@ function inactiveAllTab(){
 function active(currentTab){
   inactiveAllTab(); // nettoyage
   currentTab.className="active"; // je deviens active
-  //getTranslationTask();
 }
 
 tabTranslate.addEventListener("click",function(){
@@ -168,17 +167,19 @@ tabVerify.addEventListener("click",function(){
 })
 
 function enableTranslateTab() {
-  activeOnglet = "translation";
+  activeTab = "translation";
   active(tabTranslate);
+  getTranslationTasks();
 }
 
 function enableVerificationTab() {
-  activeOnglet = "verification";
+  activeTab = "verification";
   active(tabTranslate);
+  getVerificationTasks()
 }
 
 // translation in spécific language for logged user
-const loadTranslations = async(tasks) => {
+const loadTranslations = async(tasks, callback) => {
   tasks.forEach ( async (task, index) => {
     if(!currentUser) {
       redirectToLogin()
@@ -206,38 +207,84 @@ const loadTranslations = async(tasks) => {
             });
           }
         }
+        console.log("taskData: ", taskData);
+        var textToVerify = null;
+        if (taskData.type =="verification") {
+          textToVerify = await getTextToVerify(taskData);
+        }
+        
         console.log("ui:: currentTranslation : ", currentTranslations);
-        if (index == 0) {
-          updateView(currentTranslations, taskData.target_lang);
-          currentTask = task;
-          console.log("currentTask", currentTask.data())
+        if (index == 0 ) {
+          callback(task, currentTranslations, textToVerify);
         }
       }
     }
   })
 }
 
-// Get user first translation task
-const getTranslationTask = async() => {
-  console.log(activeOnglet);
-  showLoader();
+const getTextToVerify = async(task) => {
+  const tasksQry = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("workflow_id", "==", task.workflow_id),
+    where("status", "==", "completed"), 
+    (task.verification_level == 1) ? where("type", "==", "translation") : where("verification_level", "==", task.verification_level -1)
+  );
+
+  const tasksQrySnap = await getDocs(tasksQry);
+  return tasksQrySnap.docs.length > 0 && tasksQrySnap.docs[0].data()?.translated_sentence ? tasksQrySnap.docs[0].data().translated_sentence : "";
+}
+
+const getAllTasks = async() => {
   const tasksQry = query(
     collection(firestore, ANNOTATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
     where("status", "==", "assigned")
   );
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {});
+  showTabs();
+}
+
+const getTranslationTasks = async() => {
+  const tasksQry = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "assigned"),
+    where("type", "==", "translation")
+  );
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
+    updateTranslationView(currentTranslations);
+    currentTask = task;
+  });
+}
+
+const getVerificationTasks = async() => {
+  const tasksQry = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "assigned"),
+    where("type", "==", "verification")
+  );
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
+    updateVerificationView(currentTranslations, textToVerify);
+    currentTask = task;
+  });
+}
+
+const getTasks = async(tasksQry, callback) => {
+  console.log(activeTab);
+  showLoader();
+ 
   const tasksQrySnap = await getDocs(tasksQry);
   if (tasksQrySnap.docs.length > 0) {
     $("#translationBloc").show();
     $("#noTranslateFound").hide();
-    await loadTranslations(tasksQrySnap.docs);
+    await loadTranslations(tasksQrySnap.docs, callback);
   } else {
     //TODO display no task view
     $("#translationBloc").hide();
     $("#noTranslateFound").show();
     hideLoader()
   }
-  showTabs();
   
   console.log("Number of tasks=",tasksQrySnap.docs.length)
 }
@@ -259,7 +306,7 @@ const buildTranslationSourceDom = function(uiTranslation) {
   return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
 }
 
-const updateView = function(currentTranslations, target_lang){
+const updateTranslationView = function(currentTranslations){
   if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
@@ -273,6 +320,20 @@ const updateView = function(currentTranslations, target_lang){
   $("#target_language").text(target_lang);
   $("#translation_sources").html(uiTranslationSourcesDom);
   $("#resulttext").val('');
+  hideLoader();
+}
+
+const updateVerificationView = function(currentTranslations, textToVerify){
+  if(!currentTranslations || !(currentTranslations.length > 0)){
+    return;
+  }
+
+  let uiTranslationSourcesDom = ""
+  currentTranslations.forEach ( uiTranslation => {
+    uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
+  })
+  $("#translation_sources").html(uiTranslationSourcesDom);
+  $("#resulttext").val(textToVerify);
   hideLoader();
 }
 
@@ -370,7 +431,7 @@ const updateTranslationTask = async function(status, newValue) {
   });
   console.log("Translation task updated successfully");
   currentTask = null;
-  getTranslationTask();
+  getTranslationTasks();
 }
 
 const confirmationModal = new bootstrap.Modal('#confirmationModal', {});
