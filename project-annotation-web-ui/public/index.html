@@ -142,7 +142,7 @@
         <ul class="navbar-nav">
           <li class="nav-item dropdown">
             <select data-i18n-switcher class="locale-switcher">
-              <option value="nqo">N'ko</option>
+              <option value="nqo">ߒߞߏ</option>
               <option value="fr">Français</option>
               <option value="en">English</option>
             </select>
@@ -163,7 +163,11 @@
         <!-- translation text will be injected here -->
       </div>
       <div class="row result-bloc d-flex flex-column align-items-center mb-1">
-        <p data-i18n-key="translation-label">Traduction</p>
+        <p id="task-instruction-container">
+          <span data-i18n-key="translation-label">Traduction</span>
+          <span>&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+          <span id="target_language"></span>
+        </p>
         <textarea id="resulttext" type="text" rows="9"></textarea>
       </div>
       <div class="row actions d-flex flex-row justify-content-center pt-2">

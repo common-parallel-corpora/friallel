@@ -93,22 +93,40 @@ body {
 }
 .text-to-translate p {
     font-weight: 700;
+    font-size: 1.2em;
 }
 #resulttext {
     min-height: 160px;
     border-radius: 7px;
     width: 90%;
     max-width: 850px;
-    font-size: 1.4em;
+    font-size: 1.8em;
     line-height: 23px;
     padding: 12px 8px;
+}
+#resulttext.rtl {
+    direction: rtl;
+}
+#resulttext.cursor-left {
+    text-align: right;
 }
 .result-bloc p {
     font-size: 1.2em;
     color: #000;
     font-weight: 900;
-    width: min-content;
+    width: max-content;
 }
+.result-bloc p.rtl {
+    display: flex;
+    flex-flow: row-reverse nowrap;
+}
+/* .result-bloc p.ltr {
+    display: flex;
+    flex-flow: row nowrap;
+} */
+/* .result-bloc p span {
+    width: max-content;
+} */
 .row.actions {
     /* max-width: 750px;
     width: 90%; */
