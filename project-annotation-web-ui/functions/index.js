@@ -208,19 +208,20 @@ exports.workflowTaskAssignmentAgent = functions.pubsub.schedule("every 5 minutes
 
 /**
  * Gets list of active workflows
- * @return {set} the set active workflows
+ * @return {Array} the set active workflows
  */
 async function getActiveWorkflows() {
-  const activeWorkflows = new Set();
+  const activeWorkflows = [];
   await db.collection(workflowCollectionName).where(
       "status", "==", constantActive
   ).orderBy(
       "priority", "asc"
   ).get().then((activeWorkflowResults)=>{
-    activeWorkflowResults.forEach((workflow) => {
-      activeWorkflows.add(workflow.id);
+    const activeWorkflowDocuments = activeWorkflowResults.docs;
+    for (const workflow of activeWorkflowDocuments) {
+      activeWorkflows.push(workflow.id);
       console.log(`Added active workflows# ${workflow.id} for secentence#${workflow.get("document_id")}`);
-    });
+    }
   });
   return activeWorkflows;
 }
@@ -291,11 +292,11 @@ async function completeActiveWorkflow(workflowId, translatedSentence) {
 exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async (context) => {
   // Get all active workflows
   const activeWorkflows = await getActiveWorkflows();
-  if (activeWorkflows.size === 0) {
+  if (activeWorkflows.length === 0) {
     console.log("There are no active workflows");
   } else {
     // Go through each workflow to update the task list if needed
-    activeWorkflows.forEach(async (activeWorkflow)=>{
+    for (const activeWorkflow of activeWorkflows) {
       console.log("Working on workflow : ", activeWorkflow);
       await db.collection(annotationTaskCollectionName).where(
           "workflow_id", "==", activeWorkflow
@@ -359,7 +360,7 @@ exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async
           }
         }
       });
-    });
+    }
   }
 });
 
