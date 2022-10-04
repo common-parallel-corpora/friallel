@@ -60,6 +60,13 @@ const ANNOTATION_TASKS = "annotation-tasks"; //TODO rename tanslation-tasks tran
 const USERS = "users";
 const COMPLETED_TASK_STATUS = "completed";
 const UNASSIGNED_TASK_STATUS = "unassigned";
+const ACCEPTED_TASK_STATUS = "accepted";
+const REJECTED_TASK_STATUS = "rejected";
+
+
+//tabs names
+const TRANSLATION_TAB_NAME = "translation";
+const VERIFICATION_TAB_NAME = "verification";
 
 
 /**
@@ -145,6 +152,8 @@ var currentTranslation = null;
 var defaultLanguage = "eng_Latn";
 var activeTab;
 
+var currentTextToVerify = null;
+
 
 function inactiveAllTab(){
   tabTranslate.className = "";
@@ -167,14 +176,14 @@ tabVerify.addEventListener("click",function(){
 })
 
 function enableTranslateTab() {
-  activeTab = "translation";
+  activeTab = TRANSLATION_TAB_NAME;
   active(tabTranslate);
   getTranslationTasks();
 }
 
 function enableVerificationTab() {
-  activeTab = "verification";
-  active(tabTranslate);
+  activeTab = VERIFICATION_TAB_NAME;
+  active(tabVerify);
   getVerificationTasks()
 }
 
@@ -212,8 +221,6 @@ const loadTranslations = async(tasks, callback) => {
         if (taskData.type =="verification") {
           textToVerify = await getTextToVerify(taskData);
         }
-        
-        console.log("ui:: currentTranslation : ", currentTranslations);
         if (index == 0 ) {
           callback(task, currentTranslations, textToVerify);
         }
@@ -323,7 +330,7 @@ const updateTranslationView = function(currentTranslations){
   hideLoader();
 }
 
-const updateVerificationView = function(currentTranslations, textToVerify){
+const updateVerificationView = function(currentTranslations, textToVerify) {
   if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
@@ -332,6 +339,7 @@ const updateVerificationView = function(currentTranslations, textToVerify){
   currentTranslations.forEach ( uiTranslation => {
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
   })
+  currentTextToVerify = textToVerify
   $("#translation_sources").html(uiTranslationSourcesDom);
   $("#resulttext").val(textToVerify);
   hideLoader();
@@ -341,7 +349,7 @@ $( "#validate_btn" ).click(function() {
   let translationValue = $("#resulttext").val().trim();
   console.log("translationValue", translationValue)
   if (translationValue.length > 0) {
-    currentInteraction = InteractionType.UPDATE_TRANSLATE;
+    currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.UPDATE_TRANSLATE : InteractionType.UPDATE_VERIFICATION;
     confirmationModal.show();
     //saveTranslation(translationValue)
   }
@@ -351,7 +359,7 @@ const actionSaveTranslation = function(){
   let translationValue = $("#resulttext").val().trim();
   console.log("Sauvegarde declenché sur le text : ", translationValue);
   showLoader()
-  saveTranslation(translationValue);
+  updateTranslationTask(COMPLETED_TASK_STATUS, translationValue);
   currentInteraction = null;
 }
 const actionSkipTranslation = function(){
@@ -361,9 +369,25 @@ const actionSkipTranslation = function(){
   currentInteraction = null;
 }
 
+const actionSaveVerification = function(){
+  let verifiedText = $("#resulttext").val().trim();
+  console.log("Sauvegarde du texte de vérification : ", verifiedText);
+  console.log("Sauvegarde du texte de vérification currentTextToVerify : ", currentTextToVerify);
+  showLoader();
+  var verificationStatus = currentTextToVerify == verifiedText ? ACCEPTED_TASK_STATUS : REJECTED_TASK_STATUS;
+  updateVerificationTask(COMPLETED_TASK_STATUS, verificationStatus, verifiedText);
+  currentInteraction = null;
+}
+const actionSkipVerification = function(){
+  console.log("Ignorer la tache de vérification");
+  showLoader();
+  updateVerificationTask(UNASSIGNED_TASK_STATUS, "", "");
+  currentInteraction = null;
+}
+
 // INTERACTION VALIDATION
 const InteractionType = {
-	SKIP: {
+	SKIP_TRANSLATION: {
     MESSAGE: "ignore-translate",
     VALUE: 0,
     ACTION: actionSkipTranslation
@@ -372,51 +396,35 @@ const InteractionType = {
     MESSAGE: "apply-translate",
     VALUE: 1,
     ACTION: actionSaveTranslation
+  },
+  SKIP_VERIFICATION: {
+    MESSAGE: "ignore-verification",
+    VALUE: 2,
+    ACTION: actionSkipVerification
+  },
+	UPDATE_VERIFICATION: {
+    MESSAGE: "apply-verification",
+    VALUE: 3,
+    ACTION: actionSaveVerification
   }
 };
 var currentInteraction = null;
 // -----------------------------------------------------------------
 
-const saveTranslation = async function(translationValue) {
+function isValidTask() {
   var taskData = currentTask ? currentTask.data() : null;
   if(!taskData || !taskData?.collection_id || !taskData?.document_id){
     console.error("error:: task not conform. Task : ", taskData);
-    return;
+    return false;
   }
-  const docRef = doc(firestore, taskData.collection_id, taskData.document_id);
-
-  console.log("docRef",docRef)
-
-  //TODO format date for firestore
-  let now = Timestamp.fromDate(new Date());//Date.now();
-
-  //TODO translations to translations
-  /*updateDoc(docRef, {
-    translations: arrayUnion( {
-      created : now,
-      lang : LANG_ENCODING,
-      translation : translationValue,
-      updated : now,
-      user_id : currentUser.uid,
-    })
-  })
-  .catch(error => {
-      hideLoader();
-      console.log(error);
-  });*/
-
-  updateTranslationTask(COMPLETED_TASK_STATUS, translationValue)
+  return true;
 }
 
 const updateTranslationTask = async function(status, newValue) {
 
-  var taskData = currentTask ? currentTask.data() : null;
-  if(!taskData || !taskData?.collection_id || !taskData?.document_id){
-    console.error("error:: task not conform. Task : ", taskData);
+  if (!isValidTask()) {
     return;
   }
-
-  var taskData = currentTask ? currentTask.data() : null;
 
   const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
 
@@ -433,6 +441,28 @@ const updateTranslationTask = async function(status, newValue) {
   currentTask = null;
   getTranslationTasks();
 }
+const updateVerificationTask = async function(status, verificationStatus, newValue) {
+
+  if (!isValidTask()) {
+    return;
+  }
+
+  const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
+
+  updateDoc(docRef, {
+    status: status,
+    verification_status: verificationStatus,
+    translated_sentence: newValue,
+    updated_date : Timestamp.fromDate(new Date())
+  })
+  .catch(error => {
+      hideLoader();
+      console.log(error);
+  });
+  console.log("Verification task updated successfully");
+  currentTask = null;
+  getVerificationTasks();
+}
 
 const confirmationModal = new bootstrap.Modal('#confirmationModal', {});
 //const confirmationModalDOM = document.getElementById('confirmationModal');
@@ -447,7 +477,7 @@ confirmationModalDOM.on("show.bs.modal", event => {
 });
 
 $( "#skip_btn" ).click(function() {
-  currentInteraction = InteractionType.SKIP;
+  currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.SKIP_TRANSLATION : InteractionType.SKIP_VERIFICATION;
   confirmationModal.show();
 });
 $( "#modal-confirm-btn" ).click(function() {
