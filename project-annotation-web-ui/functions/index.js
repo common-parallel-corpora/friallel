@@ -19,10 +19,10 @@ const constantAccepted="accepted";
 const taskTypeTranslation="translation";
 const taskTypeVerification="verification";
 
-const constantMapKeyAssignedTranslation = "translationassigned";
-const constantMapKeyAssignedVerification = "verificationasssigned";
-const constantMapKeyCompletedTranslation = "translationcompleted";
-const constantMapKeyCompletedVerification = "verificationcompleted";
+const constantMapKeyAssignedTranslation = "".concat(taskTypeTranslation, constantAssigned);
+const constantMapKeyAssignedVerification = "".concat(taskTypeVerification, constantAssigned);
+const constantMapKeyCompletedTranslation = "".concat(taskTypeTranslation, constantCompleted);
+const constantMapKeyCompletedVerification = "".concat(taskTypeVerification, constantCompleted);
 
 // Retrieving Data in Configuration File .env
 const maxAssignmentHours = process.env.MAX_TASK_ASSIGNMENT_AGE_HOURS;
