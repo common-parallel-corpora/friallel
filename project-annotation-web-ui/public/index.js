@@ -4,6 +4,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-
 import { doc, getDoc, updateDoc, Timestamp, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
+import * as env from "./environment/environment.js";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -16,7 +17,7 @@ $("#noTranslateFound").hide();
 $("#translatorTab").hide();
 $("#verifierTab").hide();
 
-const firebaseConfig = {
+const firebaseConfig = (env.prod == true) ? {
   apiKey: "AIzaSyBQja_MCcubMhjmJYhKI50H_Nzn8SkUwgY",
   authDomain: "fs-2022-003-mtannotation.firebaseapp.com",
   databaseURL:
@@ -26,8 +27,19 @@ const firebaseConfig = {
   messagingSenderId: "82914623747",
   appId: "1:82914623747:web:80acd4fb0d31df013ca936",
   measurementId: "G-LXY5Y1HL47",
+} : {
+    apiKey: "AIzaSyBmmteKSaTJ6KIwABvGGJMsP67oZtEcfmk",
+    authDomain: "fs-2022-003-mtannotation-dev.firebaseapp.com",
+    projectId: "fs-2022-003-mtannotation-dev",
+    storageBucket: "fs-2022-003-mtannotation-dev.appspot.com",
+    messagingSenderId: "1085169598448",
+    appId: "1:1085169598448:web:f4cc316c508a226cdae735",
+    measurementId: "G-TLK38CCN52"
 };
 
+console.log("cc:: env.prod : ", env.prod);
+console.log("cc:: config : ", firebaseConfig);
+  
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
