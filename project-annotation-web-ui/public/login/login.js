@@ -1,20 +1,32 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
-
+import * as env from "../environment/environment.js";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-    apiKey: "AIzaSyBQja_MCcubMhjmJYhKI50H_Nzn8SkUwgY",
-    authDomain: "fs-2022-003-mtannotation.firebaseapp.com",
-    databaseURL:
-        "https://fs-2022-003-mtannotation-default-rtdb.firebaseio.com",
-    projectId: "fs-2022-003-mtannotation",
-    storageBucket: "fs-2022-003-mtannotation.appspot.com",
-    messagingSenderId: "82914623747",
-    appId: "1:82914623747:web:80acd4fb0d31df013ca936",
-    measurementId: "G-LXY5Y1HL47",
+
+const firebaseConfig = (env.prod == true) ? {
+  apiKey: "AIzaSyBQja_MCcubMhjmJYhKI50H_Nzn8SkUwgY",
+  authDomain: "fs-2022-003-mtannotation.firebaseapp.com",
+  databaseURL:
+    "https://fs-2022-003-mtannotation-default-rtdb.firebaseio.com",
+  projectId: "fs-2022-003-mtannotation",
+  storageBucket: "fs-2022-003-mtannotation.appspot.com",
+  messagingSenderId: "82914623747",
+  appId: "1:82914623747:web:80acd4fb0d31df013ca936",
+  measurementId: "G-LXY5Y1HL47",
+} : {
+    apiKey: "AIzaSyBmmteKSaTJ6KIwABvGGJMsP67oZtEcfmk",
+    authDomain: "fs-2022-003-mtannotation-dev.firebaseapp.com",
+    projectId: "fs-2022-003-mtannotation-dev",
+    storageBucket: "fs-2022-003-mtannotation-dev.appspot.com",
+    messagingSenderId: "1085169598448",
+    appId: "1:1085169598448:web:f4cc316c508a226cdae735",
+    measurementId: "G-TLK38CCN52"
 };
+
+console.log("cc:: env.prod : ", env);
+console.log("cc:: config : ", firebaseConfig);
 
 // Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
