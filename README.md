@@ -21,3 +21,8 @@ firebase use --add
 firebase deploy -P {alias}
 firebase deploy --only firestore:indexes
 ```
+
+# Firebase - How to export all current indexes
+```
+firebase firestore:indexes
+```
