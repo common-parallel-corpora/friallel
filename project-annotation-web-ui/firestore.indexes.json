@@ -1,0 +1,65 @@
+{
+    "indexes": [
+      {
+        "collectionGroup": "annotation-tasks",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "status",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "assigned_date",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "annotation-tasks",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "status",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "type",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "priority",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "annotation-tasks",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "workflow_id",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "creation_date",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "workflows",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "status",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "priority",
+            "order": "ASCENDING"
+          }
+        ]
+      }
+    ],
+    "fieldOverrides": []
+}
