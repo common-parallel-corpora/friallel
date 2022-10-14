@@ -30,19 +30,29 @@ data/csv/flores_devtest_fr_en_ar.csv:
 
 load-flores-dev:
 	python scripts/load_dataset.py  \
+		--env prod \
 		--dataset-root-dir data/flores200_dataset/dev \
 		--dataset-name flores-dev 
 #		--langs eng_Latn fra_Latn
 
 load-flores-dev-test:
 	python scripts/load_dataset.py  \
+		--env dev \
 		--dataset-root-dir data/flores200_dataset/devtest \
 		--dataset-name flores-devtest 
+#		--langs eng_Latn fra_Latn
+
+load-devtest-data:
+	python scripts/load_dataset.py  \
+		--env prod \
+		--dataset-root-dir data/dev_dataset/dev \
+		--dataset-name datatest-dev 
 #		--langs eng_Latn fra_Latn
 
 
 create-translation-workflows:
 	python scripts/create_translation_workflows.py  \
+		--env prod \
 		--dataset-names flores-dev flores-devtest \
 		--target-lang nqo_Nkoo \
 		--workflow-name default-translation-workflow
