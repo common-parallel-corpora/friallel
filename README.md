@@ -19,4 +19,5 @@ firebase apps:list
 firebase projects:list
 firebase use --add
 firebase deploy -P {alias}
+firebase deploy --only firestore:indexes
 ```
