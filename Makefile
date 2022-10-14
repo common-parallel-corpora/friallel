@@ -50,9 +50,19 @@ load-devtest-data:
 #		--langs eng_Latn fra_Latn
 
 
-create-translation-workflows:
+create-translation-workflows-flores-dev:
 	python scripts/create_translation_workflows.py  \
 		--env prod \
 		--dataset-names flores-dev flores-devtest \
 		--target-lang nqo_Nkoo \
-		--workflow-name default-translation-workflow
+		--workflow-name default-translation-workflow \
+		--initial-priority 1000
+
+
+create-translation-workflows-flores-devtest:
+	python scripts/create_translation_workflows.py  \
+		--env prod \
+		--dataset-names flores-devtest \
+		--target-lang nqo_Nkoo \
+		--workflow-name default-translation-workflow \
+		--initial-priority  2000
