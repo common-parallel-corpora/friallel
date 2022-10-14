@@ -9,7 +9,7 @@ import parallel_corpus_utils
 
 
 def create_dataset_collection(args):
-    fs_client = firebase_utils.get_firestore_client()
+    fs_client = firebase_utils.get_firestore_client(args.env)
     for sentence_ix, sentence_doc_data in generate_dataset_sentences(args):
         store_sentence(fs_client, args.dataset_name, sentence_ix, sentence_doc_data)
 
@@ -56,6 +56,7 @@ def main(args):
 
 def parse_args():
     parser = ArgumentParser()
+    parser.add_argument("--env", choices=['dev', 'prod'], required=True)
     parser.add_argument("--dataset-root-dir", required=True)
     parser.add_argument("--dataset-name", required=True)
     parser.add_argument("--langs", nargs="*")
