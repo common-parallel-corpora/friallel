@@ -1,3 +1,4 @@
+from curses import keyname
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
@@ -7,8 +8,9 @@ from pprint import pprint
 import logging
 
 
-def get_firestore_client():
-    cred = credentials.Certificate("keys/fbServiceAccountKey.json")
+def get_firestore_client(env):
+    key_name = "keys/fbServiceAccountKey-" + env + ".json"
+    cred = credentials.Certificate(key_name)
     app = firebase_admin.initialize_app(cred)
     return firebase_admin.firestore.client(app=app)
 

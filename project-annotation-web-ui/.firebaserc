@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "fs-2022-003-mtannotation"
-  }
+    "default": "fs-2022-003-mtannotation",
+    "prod": "fs-2022-003-mtannotation",
+    "dev": "fs-2022-003-mtannotation-dev"
+  },
+  "targets": {},
+  "etags": {}
 }
