@@ -56,6 +56,7 @@ def parse_args():
     parser.add_argument("--initial-priority", type=int, required=True)
     parser.add_argument("--batch-size", type=int, default=100)
     parser.add_argument("--target-lang", required=True)
+    
     return parser.parse_args()
 
 
