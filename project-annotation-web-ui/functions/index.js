@@ -108,7 +108,7 @@ async function assignNextTaskToUser(user, taskCountToBeAssigned, taskType, exclu
   );
   await queryUnassignedTasks.orderBy(
       "priority", "asc"
-  ).limit(taskCountToBeAssigned * 10).get()
+  ).get()
       .then(async (unassignedTasks)=>{
         const unassignedTaskCountMax = unassignedTasks.size;
         let assignedTaskCount = 0;
