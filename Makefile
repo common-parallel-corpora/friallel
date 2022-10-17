@@ -30,7 +30,7 @@ data/csv/flores_devtest_fr_en_ar.csv:
 
 load-flores-dev:
 	python scripts/load_dataset.py  \
-		--env prod \
+		--env dev \
 		--dataset-root-dir data/flores200_dataset/dev \
 		--dataset-name flores-dev 
 #		--langs eng_Latn fra_Latn
@@ -44,7 +44,7 @@ load-flores-dev-test:
 
 load-devtest-data:
 	python scripts/load_dataset.py  \
-		--env prod \
+		--env dev \
 		--dataset-root-dir data/dev_dataset/dev \
 		--dataset-name datatest-dev 
 #		--langs eng_Latn fra_Latn
@@ -52,7 +52,7 @@ load-devtest-data:
 
 create-translation-workflows-flores-dev:
 	python scripts/create_translation_workflows.py  \
-		--env prod \
+		--env dev \
 		--dataset-names flores-dev flores-devtest \
 		--target-lang nqo_Nkoo \
 		--workflow-name default-translation-workflow \
@@ -61,8 +61,21 @@ create-translation-workflows-flores-dev:
 
 create-translation-workflows-flores-devtest:
 	python scripts/create_translation_workflows.py  \
-		--env prod \
+		--env dev \
 		--dataset-names flores-devtest \
 		--target-lang nqo_Nkoo \
 		--workflow-name default-translation-workflow \
 		--initial-priority  2000
+
+
+import-flores-dev-translations:
+	python scripts/import_translation_tasks.py \
+		--env dev \
+		--dataset-name flores-dev \
+		--input-csv-file-path ~/Downloads/flores_dev_fr_en__baba_m_diane\ -\ flores_dev_fr_en.csv \
+		--output-csv-report-path import_report_flores_dev_fr_en.csv \
+		--input-csv-translation-colname nqo_Nkoo.dev \
+		--translation-target-lang nqo_Nkoo
+
+
+	
