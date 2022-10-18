@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, updateDoc, Timestamp, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, updateDoc, Timestamp, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, orderBy, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import * as env from "./environment/environment.js";
@@ -131,6 +131,7 @@ var tabVerify = document.getElementById("verifierTab");
 const showTabs = function() {
   firestoreUser.isActiveTranslator ? $("#translorTab").show() : $('#translorTab').hide();
   firestoreUser.isActiveVerifier ? $("#verifierTab").show() : $('#verifierTab').hide();
+
   if (firestoreUser.isActiveTranslator) {
     tabTranslate.className="active";
     enableTranslateTab();
@@ -180,23 +181,25 @@ function active(currentTab){
 }
 
 tabTranslate.addEventListener("click",function(){
-  //contenu.innerHTML = "article 1";
   enableTranslateTab();
 })
 
 tabVerify.addEventListener("click",function(){
-  //contenu.innerHTML = "article 2";
   enableVerificationTab();
 })
 
 function enableTranslateTab() {
   activeTab = TRANSLATION_TAB_NAME;
+  $("#translation_actions").removeClass("hide");
+  $("#verification_actions").addClass("hide");
   active(tabTranslate);
   getTranslationTasks();
 }
 
 function enableVerificationTab() {
   activeTab = VERIFICATION_TAB_NAME;
+  $("#translation_actions").addClass("hide");
+  $("#verification_actions").removeClass("hide");
   active(tabVerify);
   getVerificationTasks()
 }
@@ -259,7 +262,8 @@ const getAllTasks = async() => {
   const tasksQry = query(
     collection(firestore, ANNOTATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
-    where("status", "==", "assigned")
+    where("status", "==", "assigned"),
+    orderBy("priority")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {});
   showTabs();
@@ -270,7 +274,8 @@ const getTranslationTasks = async() => {
     collection(firestore, ANNOTATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
     where("status", "==", "assigned"),
-    where("type", "==", "translation")
+    where("type", "==", "translation"),
+    orderBy("priority")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
     updateTranslationView(currentTranslations, task.data().target_lang);
@@ -283,7 +288,8 @@ const getVerificationTasks = async() => {
     collection(firestore, ANNOTATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
     where("status", "==", "assigned"),
-    where("type", "==", "verification")
+    where("type", "==", "verification"),
+    orderBy("priority")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
     updateVerificationView(currentTranslations, textToVerify);
@@ -353,21 +359,51 @@ const updateVerificationView = function(currentTranslations, textToVerify) {
   currentTranslations.forEach ( uiTranslation => {
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
   })
-  currentTextToVerify = textToVerify
+  currentTextToVerify = textToVerify;
+  $("#verification_correct_btn").hide();
+  $("#verification_validate_btn").show();
   $("#translation_sources").html(uiTranslationSourcesDom);
   $("#resulttext").val(textToVerify);
   hideLoader();
 }
 
-$( "#validate_btn" ).click(function() {
+$("#translation_validate_btn").click(function() {
   let translationValue = $("#resulttext").val().trim();
   console.log("translationValue", translationValue)
   if (translationValue.length > 0) {
     currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.UPDATE_TRANSLATE : InteractionType.UPDATE_VERIFICATION;
     confirmationModal.show();
-    //saveTranslation(translationValue)
   }
 });
+
+$("#verification_validate_btn").click(function() {
+  let translationValue = $("#resulttext").val().trim();
+  console.log("translationValue", translationValue)
+  if (translationValue.length > 0) {
+    currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.UPDATE_TRANSLATE : InteractionType.APPROVE_VERIFICATION;
+    confirmationModal.show();
+  }
+});
+
+$("#verification_correct_btn").click(function() {
+  let translationValue = $("#resulttext").val().trim();
+  console.log("translationValue", translationValue)
+  if (translationValue.length > 0) {
+    currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.UPDATE_TRANSLATE : InteractionType.UPDATE_VERIFICATION;
+    confirmationModal.show();
+  }
+});
+
+$("#resulttext").on("input", () => {
+  let verifiedText = $("#resulttext").val().trim();
+  if (currentTextToVerify == verifiedText) {
+    $("#verification_validate_btn").show();
+    $("#verification_correct_btn").hide();
+  } else {
+    $("#verification_validate_btn").hide();
+    $("#verification_correct_btn").show();
+  }
+}) 
 
 const actionSaveTranslation = function(){
   let translationValue = $("#resulttext").val().trim();
@@ -416,9 +452,14 @@ const InteractionType = {
     VALUE: 2,
     ACTION: actionSkipVerification
   },
-	UPDATE_VERIFICATION: {
-    MESSAGE: "apply-verification",
+	APPROVE_VERIFICATION: {
+    MESSAGE: "approve-verification",
     VALUE: 3,
+    ACTION: actionSaveVerification
+  },
+	UPDATE_VERIFICATION: {
+    MESSAGE: "apply-correction",
+    VALUE: 4,
     ACTION: actionSaveVerification
   }
 };
@@ -490,7 +531,7 @@ confirmationModalDOM.on("show.bs.modal", event => {
   }
 });
 
-$( "#skip_btn" ).click(function() {
+$( "#translation_skip_btn" ).click(function() {
   currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.SKIP_TRANSLATION : InteractionType.SKIP_VERIFICATION;
   confirmationModal.show();
 });
@@ -498,6 +539,10 @@ $( "#modal-confirm-btn" ).click(function() {
   currentInteraction.ACTION();
 });
 
+$( "#verification_skip_btn" ).click(function() {
+  currentInteraction = activeTab == TRANSLATION_TAB_NAME ? InteractionType.SKIP_TRANSLATION : InteractionType.SKIP_VERIFICATION;
+  confirmationModal.show();
+});
 
 
 

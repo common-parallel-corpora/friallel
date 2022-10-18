@@ -10,7 +10,14 @@
     "apply-translate": "Confirmez vous la soumission de la traduction ?",
     "translation-label": "Traduction vers",
     "ignore-verification": "Voulez vous ignorer la vérification courante ?",
-    "apply-verification": "Confirmez vous la soumission de la vérification ?",
+    "apply-correction": "Confirmez vous la correction de la vérification ?",
+    "approve-verification": "Confirmez vous la validation de la vérification ?",
     "translation-tab-name": "Traductions",
-    "verification-tab-name": "Vérifications"
+    "verification-tab-name": "Vérifications",
+    "action_translation_skip": "Ignorer",
+    "action_translation_validate": "Soumettre",
+    "action_verification_skip": "Ignorer",
+    "action_verification_validate": "Valider",
+    "action_verification_correct": "Corriger",
+    "empty_massage": "Aucune tâche assignée"
 }

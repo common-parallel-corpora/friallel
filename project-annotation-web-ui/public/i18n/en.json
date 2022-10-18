@@ -10,7 +10,14 @@
     "apply-translate": "Confirm translation ?",
     "translation-label": "Translation to",
     "ignore-verification": "Ignore verification ?",
-    "apply-verification": "Confirm verification ?",
+    "apply-correction": "Confirm correction ?",
+    "approve-verification": "Confirm verification ?",
     "translation-tab-name": "Translations",
-    "verification-tab-name": "Verifications"
+    "verification-tab-name": "Verifications",
+    "action_translation_skip": "Ignore",
+    "action_translation_validate": "Submit",
+    "action_verification_skip": "Ignore",
+    "action_verification_validate": "Validate",
+    "action_verification_correct": "Correct",
+    "empty_massage": "No assigned task available"
 }

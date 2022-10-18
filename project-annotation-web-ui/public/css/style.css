@@ -133,7 +133,11 @@ body {
     /* background-color: #4CD964; */
 }
 .row.actions button {
-    width: min-content;
+    width: max-content;
+}
+
+.row.actions.hide {
+    display: none !important;
 }
 
 
