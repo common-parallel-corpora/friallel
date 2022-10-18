@@ -16,5 +16,13 @@ deploy-dev-functions:
 	firebase use fs-2022-003-mtannotation-dev
 	firebase deploy --only functions
 
+deploy-dev-indexes:
+	firebase use dev
+	firebase deploy --only firestore:indexes
+
+deploy-prod-indexes:
+	firebase use prod
+	firebase deploy --only firestore:indexes
+
 start-dev-server:
 	firebase emulators:start
