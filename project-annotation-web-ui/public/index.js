@@ -233,7 +233,7 @@ const loadTranslations = async(tasks, callback) => {
             });
           }
         }
-        console.log("taskData: ", taskData);
+        //console.log("taskData: ", taskData);
         var textToVerify = null;
         if (taskData.type =="verification") {
           textToVerify = await getTextToVerify(taskData);
@@ -262,8 +262,7 @@ const getAllTasks = async() => {
   const tasksQry = query(
     collection(firestore, ANNOTATION_TASKS),
     where("assignee_id", "==", currentUser.uid), 
-    where("status", "==", "assigned"),
-    orderBy("priority")
+    where("status", "==", "assigned")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {});
   showTabs();
@@ -312,8 +311,6 @@ const getTasks = async(tasksQry, callback) => {
     $("#noTranslateFound").show();
     hideLoader()
   }
-  
-  console.log("Number of tasks=",tasksQrySnap.docs.length)
 }
 
 /**
