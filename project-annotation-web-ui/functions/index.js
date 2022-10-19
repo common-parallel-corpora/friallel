@@ -101,42 +101,53 @@ async function getUserWorkingSentences(userID) {
  * @param {Set} excludedSentences Set of excluded sentences
  */
 async function assignNextTaskToUser(user, taskCountToBeAssigned, taskType, excludedSentences) {
-  const queryUnassignedTasks = db.collection(annotationTaskCollectionName).where(
-      "status", "==", constantUnassigned
-  ).where(
-      "type", "==", taskType
-  );
-  await queryUnassignedTasks.orderBy(
-      "priority", "asc"
-  ).limit(taskCountToBeAssigned * 10).get()
-      .then(async (unassignedTasks)=>{
-        const unassignedTaskCountMax = unassignedTasks.size;
-        let assignedTaskCount = 0;
-        const availableTasks = unassignedTasks.docs;
-        for (let availableTaskIndex = 0; availableTaskIndex < unassignedTaskCountMax; availableTaskIndex += 1) {
-          const unassignedTask = availableTasks[availableTaskIndex];
-          const taskSentenceReference = `${unassignedTask.get("collection_id")}/${unassignedTask.get("document_id")}`;
-          if (excludedSentences.has(taskSentenceReference)) {
-            console.log(`Task ${taskType} assignment skipping task#${unassignedTask.id} for user`);
-          } else if (unassignedTask.get("verification_level") > user.get("verifier_level")) {
-            console.log(`Task ${taskType} assignment skipping task#${unassignedTask.id} for user : Low level`);
-          } else {
-            console.log(`Awaiting ${taskType} task assignment for task#${unassignedTask.id}`);
-            await unassignedTask.ref.set({
-              "status": constantAssigned,
-              "assignee_id": user.id,
-              "assigned_date": new Date()
-            }, {merge: true}).then(()=>{
-              console.log(`Assigned ${taskType} Task# ${unassignedTask.id} to User#${user.id}`);
-            });
-            excludedSentences.add(
-                taskSentenceReference
-            );
-            assignedTaskCount += 1;
-            if (assignedTaskCount >= taskCountToBeAssigned) break;
+  const limitOfLoadedUnassignedTasks = taskCountToBeAssigned * 3;
+  let stopAssigning = false;
+  let assignedTaskCount = 0;
+  let lastProcessPriority = -1;
+  while (stopAssigning === false) {
+    const queryUnassignedTasks = db.collection(annotationTaskCollectionName).where(
+        "status", "==", constantUnassigned
+    ).where(
+        "type", "==", taskType
+    );
+    await queryUnassignedTasks.orderBy(
+        "priority", "asc"
+    ).startAfter(lastProcessPriority).limit(limitOfLoadedUnassignedTasks).get()
+        .then(async (unassignedTasks)=>{
+          console.log(`Assigning ${taskType} tasks to user ${user.id} starting this priority #${lastProcessPriority}`);
+          if (unassignedTasks.size < limitOfLoadedUnassignedTasks) stopAssigning = true;
+          const unassignedTaskCountMax = unassignedTasks.size;
+          const availableTasks = unassignedTasks.docs;
+          for (let availableTaskIndex = 0; availableTaskIndex < unassignedTaskCountMax; availableTaskIndex += 1) {
+            const unassignedTask = availableTasks[availableTaskIndex];
+            lastProcessPriority = unassignedTask.get("priority");
+            const taskSentenceReference = `${unassignedTask.get("collection_id")}/${unassignedTask.get("document_id")}`;
+            if (excludedSentences.has(taskSentenceReference)) {
+              console.log(`Task ${taskType} assignment skipping task#${unassignedTask.id} for user`);
+            } else if (unassignedTask.get("verification_level") > user.get("verifier_level")) {
+              console.log(`Task ${taskType} assignment skipping task#${unassignedTask.id} for user : Low level`);
+            } else {
+              console.log(`Awaiting ${taskType} task assignment for task#${unassignedTask.id}`);
+              await unassignedTask.ref.set({
+                "status": constantAssigned,
+                "assignee_id": user.id,
+                "assigned_date": new Date()
+              }, {merge: true}).then(()=>{
+                console.log(`Assigned ${taskType} Task# ${unassignedTask.id} to User#${user.id}`);
+              });
+              excludedSentences.add(
+                  taskSentenceReference
+              );
+              assignedTaskCount += 1;
+              if (assignedTaskCount >= taskCountToBeAssigned) {
+                stopAssigning = true;
+                break;
+              }
+            }
           }
-        }
-      });
+        });
+  }
 }
 
 /**
@@ -193,7 +204,10 @@ async function assignAnnotationTasks() {
 }
 
 
-exports.workflowTaskAssignmentAgent = functions.pubsub.schedule("every 5 minutes").onRun(async (context) => {
+exports.workflowTaskAssignmentAgent = functions.runWith({
+  // Ensure the function has enough memory and time
+  timeoutSeconds: 180
+}).pubsub.schedule("*/30 * * * *").onRun(async (context) => {
   console.log("ENV VARIABLE : MAX AGE TASK in HOURS : ", maxAssignmentHours);
   console.log("ENV VARIABLE : USER TRANSLATION BUCKET SIZE MAX : ", userTranslationBucketMaxSize);
   console.log("ENV VARIABLE : USER VERIFICATION BUCKET SIZE MAX : ", userVerificationBucketMaxSize);
@@ -289,7 +303,10 @@ async function completeActiveWorkflow(workflowId, translatedSentence) {
   console.log("Workflow completion final step => Saving translated sentences: ", translatedSentence);
 }
 
-exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async (context) => {
+exports.workflowTaskWorker = functions.runWith({
+  // Ensure the function has enough time
+  timeoutSeconds: 480
+}).pubsub.schedule("0 */2 * * *").onRun(async (context) => {
   // Get all active workflows
   const activeWorkflows = await getActiveWorkflows();
   if (activeWorkflows.length === 0) {
