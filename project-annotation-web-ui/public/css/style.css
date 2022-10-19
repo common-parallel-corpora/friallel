@@ -66,6 +66,11 @@ body {
 .navbar img {
     height: 40px;
 }
+.navbar .logout {
+    margin-left: 15px;
+    height: 15px;
+    width: 20;
+}
 .navbar .synchro-state {
     display: flex;
     flex-flow: row nowrap;
