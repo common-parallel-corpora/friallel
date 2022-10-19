@@ -204,7 +204,10 @@ async function assignAnnotationTasks() {
 }
 
 
-exports.workflowTaskAssignmentAgent = functions.pubsub.schedule("every 5 minutes").onRun(async (context) => {
+exports.workflowTaskAssignmentAgent = functions.runWith({
+  // Ensure the function has enough memory and time
+  timeoutSeconds: 180
+}).pubsub.schedule("*/30 * * * *").onRun(async (context) => {
   console.log("ENV VARIABLE : MAX AGE TASK in HOURS : ", maxAssignmentHours);
   console.log("ENV VARIABLE : USER TRANSLATION BUCKET SIZE MAX : ", userTranslationBucketMaxSize);
   console.log("ENV VARIABLE : USER VERIFICATION BUCKET SIZE MAX : ", userVerificationBucketMaxSize);
@@ -300,7 +303,10 @@ async function completeActiveWorkflow(workflowId, translatedSentence) {
   console.log("Workflow completion final step => Saving translated sentences: ", translatedSentence);
 }
 
-exports.workflowTaskWorker = functions.pubsub.schedule("0 12 * * *").onRun(async (context) => {
+exports.workflowTaskWorker = functions.runWith({
+  // Ensure the function has enough time
+  timeoutSeconds: 480
+}).pubsub.schedule("0 */2 * * *").onRun(async (context) => {
   // Get all active workflows
   const activeWorkflows = await getActiveWorkflows();
   if (activeWorkflows.length === 0) {
