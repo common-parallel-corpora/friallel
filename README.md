@@ -26,3 +26,15 @@ firebase deploy --only firestore:indexes
 ```
 firebase firestore:indexes
 ```
+
+# Deploy Annotation to Project
+- Setup firebase to production environment
+- Deploy UI
+- Deploy Indexes
+- Deploy Functions
+- Review Security Rules
+- Execute scripts & functions
+    - Load Dataset
+    - Create workflows
+    - Optional : Run workflow-manager to create annotation tasks (translations)
+    - Optionla : Import Offline translations 
