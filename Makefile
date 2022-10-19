@@ -59,23 +59,21 @@ create-translation-workflows-flores-dev:
 		--initial-priority 1000
 
 
-create-translation-workflows-flores-devtest:
-	python scripts/create_translation_workflows.py  \
-		--env dev \
-		--dataset-names flores-devtest \
-		--target-lang nqo_Nkoo \
-		--workflow-name default-translation-workflow \
-		--initial-priority  2000
-
-
 import-flores-dev-translations:
 	python scripts/import_translation_tasks.py \
 		--env dev \
 		--dataset-name flores-dev \
-		--input-csv-file-path ~/Downloads/flores_dev_fr_en__baba_m_diane\ -\ flores_dev_fr_en.csv \
-		--output-csv-report-path import_report_flores_dev_fr_en.csv \
+		--input-csv-file-path data/csv/translated/flores_dev_fr_en__nko_final.csv \
+		--output-csv-report-path data/csv/import_reports/report_flores_dev_fr_en__nko_final.csv \
 		--input-csv-translation-colname nqo_Nkoo.dev \
 		--translation-target-lang nqo_Nkoo
 
-
+import-flores-devtest-translations:
+	python scripts/import_translation_tasks.py \
+		--env dev \
+		--dataset-name flores-devtest \
+		--input-csv-file-path data/csv/translated/flores_devtest_fr_en_ar__nko__final.csv \
+		--output-csv-report-path data/csv/import_reports/report_flores_devtest_fr_en_ar__nko__final.csv \
+		--input-csv-translation-colname nqo_Nkoo.devtest \
+		--translation-target-lang nqo_Nkoo
 	

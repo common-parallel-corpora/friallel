@@ -59,7 +59,14 @@ def main(args):
         updated_date = datetime.datetime.now(datetime.timezone.utc)
         for row in reader:
             sentence_id = row[args.input_csv_sentence_id_colname]
-            if sentence_id in annotation_tasks:
+            email = row[args.input_csv_translator_email_colname]
+            if email not in userIdsByEmail:
+                print(f"Could not find translator {email} for sentence#{sentence_id}")
+                row['import_status'] = f"ERROR - unknown translator {email}"
+            elif sentence_id not in annotation_tasks:
+                print(f"Could not find annotation task for sentence#{sentence_id}")
+                row['import_status'] = "ERROR - unknown sentence id {sentence_id}"
+            else:
                 task_data = annotation_tasks[sentence_id]
                 task_doc = fs_client.document(f"annotation-tasks/{task_data['id']}")
                 task_doc.set({
@@ -71,9 +78,7 @@ def main(args):
                 print(f"Updated annotation task for sentence#{sentence_id}")
                 row['import_status'] = "OK"
                 row['task_id'] = task_data['id']
-            else:
-                print(f"Could not find annotation task for sentence#{sentence_id}")
-                row['import_status'] = "ERROR"
+                
             writer.writerow(row)
     
 
