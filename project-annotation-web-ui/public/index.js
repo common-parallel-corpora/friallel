@@ -125,6 +125,7 @@ const saveUser = async(user) => {
 }
 
 
+var logout = document.getElementById("logout");
 var tabTranslate = document.getElementById("translorTab");
 var tabVerify = document.getElementById("verifierTab");
 
@@ -179,6 +180,10 @@ function active(currentTab){
   inactiveAllTab(); // nettoyage
   currentTab.className="active"; // je deviens active
 }
+
+logout.addEventListener("click",function(){
+  auth.signOut()
+})
 
 tabTranslate.addEventListener("click",function(){
   enableTranslateTab();
