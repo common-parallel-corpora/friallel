@@ -66,6 +66,11 @@ body {
 .navbar img {
     height: 40px;
 }
+.navbar .logout {
+    margin-left: 15px;
+    height: 15px;
+    width: 20;
+}
 .navbar .synchro-state {
     display: flex;
     flex-flow: row nowrap;
@@ -101,7 +106,7 @@ body {
     width: 90%;
     max-width: 850px;
     font-size: 1.8em;
-    line-height: 23px;
+    line-height: 40px;
     padding: 12px 8px;
 }
 #resulttext.rtl {
@@ -133,7 +138,11 @@ body {
     /* background-color: #4CD964; */
 }
 .row.actions button {
-    width: min-content;
+    width: max-content;
+}
+
+.row.actions.hide {
+    display: none !important;
 }
 
 
