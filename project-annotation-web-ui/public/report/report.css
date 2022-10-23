@@ -1,0 +1,37 @@
+@keyframes progress {
+    0% {
+      stroke-dasharray: 0 100;
+    }
+  }
+  .circle-svg {
+    display: block;
+    margin: 10px auto;
+    max-height: 100px;
+  }
+  .circle-svg text {
+    text-align:center;
+    color:black;
+    font-size:10px
+  }
+  .circle-svg path.assigned {
+    stroke: #16fe01;
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+  }
+  .circle-svg path.completed {
+    stroke: #6ff5ff;
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+  }
+  .circle-svg path.around {
+      stroke: #c4c4c4;
+      fill: none;
+      stroke-width: 2.8;
+  }
+  body {
+    text-align:center;
+  }
