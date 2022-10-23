@@ -78,7 +78,7 @@
           },
           {
             "fieldPath": "priority",
-            "order": "DESCENDING"
+            "order": "ASCENDING"
           }
         ]
       }
