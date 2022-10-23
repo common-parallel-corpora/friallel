@@ -73,23 +73,30 @@ const sortTasks = async() => {
         } 
         return 1;
     }
-    tasks.sort((a, b) => {
+    /*tasks.sort((a, b) => {
         return  compare(a.collection_id, b.collection_id)
             ||  compare(a.type, b.type)
             ||  compare(a.verification_level, b.verification_level);
     });
     tasks.map((a) => {
         console.log("[", a.collection_id, ", ", a.type, ", ", a.verification_level, ", ", a.document_id, "]");
-    });
+    });*/
 
-    /*const result = tasks.reduce(function (r, a) {
+    const result = tasks.reduce(function (r, a) {
         r[a.collection_id] = r[a.collection_id] || [];
         r[a.collection_id].push(a);
         return r;
-    }, Object.create(null));*/
-    //var result = _.groupBy(tasks, task => task.collection_id);
+    }, Object.create(null));
 
-    //console.log(tasks);
+    const result2 = result.forEach((element) => {
+        element.reduce(function (r, a) {
+            r[a.type] = r[a.type] || [];
+            r[a.type].push(a);
+            return r;
+        }, Object.create(null));
+    });
+
+    console.log(result2);
 
     /*const translations = [];
     const verifications1 = [];
