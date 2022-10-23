@@ -59,6 +59,28 @@
             "order": "ASCENDING"
           }
         ]
+      },
+      {
+        "collectionGroup": "annotation-tasks",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "assignee_id",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "status",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "type",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "priority",
+            "order": "ASCENDING"
+          }
+        ]
       }
     ],
     "fieldOverrides": []
