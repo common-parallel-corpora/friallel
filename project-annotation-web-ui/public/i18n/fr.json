@@ -6,12 +6,12 @@
     "user-name": "Utilisateur",
     "sync-state": "Synchro serveur",
     "app-title": "FS Annotation Web UI",
-    "ignore-translate": "Voulez vous ignorer la traduction courante ?",
-    "apply-translate": "Confirmez vous la soumission de la traduction ?",
+    "ignore-translate": "Ignorer la traduction courante ?",
+    "apply-translate": "Confirmer la traduction courante ?",
     "translation-label": "Traduction vers",
-    "ignore-verification": "Voulez vous ignorer la vérification courante ?",
-    "apply-correction": "Confirmez vous la correction de la vérification ?",
-    "approve-verification": "Confirmez vous la validation de la vérification ?",
+    "ignore-verification": "Ignorer la vérification courante ?",
+    "apply-correction": "Vous avez fait une modification. Confirmez-vous votre correction?",
+    "approve-verification": "Valider la traduction courante ?",
     "translation-tab-name": "Traductions",
     "verification-tab-name": "Vérifications",
     "action_translation_skip": "Ignorer",
@@ -19,5 +19,5 @@
     "action_verification_skip": "Ignorer",
     "action_verification_validate": "Valider",
     "action_verification_correct": "Corriger",
-    "empty_massage": "Aucune tâche assignée"
+    "empty_massage": "Vous n'avez aucune tâche"
 }
