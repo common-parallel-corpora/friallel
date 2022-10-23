@@ -9,15 +9,15 @@
     "ignore-translate": "Ignore current translation ?",
     "apply-translate": "Confirm translation ?",
     "translation-label": "Translation to",
-    "ignore-verification": "Ignore verification ?",
-    "apply-correction": "Confirm correction ?",
-    "approve-verification": "Confirm verification ?",
+    "ignore-verification": "Ignore current verification ?",
+    "apply-correction": "You updated the translation. Confirm correction?",
+    "approve-verification": "Approve current translation?",
     "translation-tab-name": "Translations",
     "verification-tab-name": "Verifications",
     "action_translation_skip": "Ignore",
     "action_translation_validate": "Submit",
     "action_verification_skip": "Ignore",
-    "action_verification_validate": "Validate",
-    "action_verification_correct": "Correct",
-    "empty_massage": "No assigned task available"
+    "action_verification_validate": "Approve",
+    "action_verification_correct": "Update",
+    "empty_massage": "You don't have any task"
 }
