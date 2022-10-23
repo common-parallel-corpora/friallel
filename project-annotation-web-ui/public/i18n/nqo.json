@@ -10,7 +10,14 @@
     "apply-translate": "?ߞߊ ߘߊߟߊߡߌߘߊߟߌ ߥߏ ߟߊߦߍߟߍ",
     "translation-label": "ߘߟߊߡߌߘߊ߫ ߞߊ߲",
     "ignore-verification": "?ߞߊ ߛߊߞߍߟߌ ߥߏ ߕߏ ߦߋ߲",
-    "apply-verification": "?ߞߊ ߛߊߞߍߟߌ ߥߏ ߟߊߦߍߟߍ",
+    "apply-correction": "Confirm correction ?",
+    "approve-verification": "?ߞߊ ߛߊߞߍߟߌ ߥߏ ߟߊߦߍߟߍ",
     "translation-tab-name": "ߘߊߟߊߡߌߘߊߟߌ",
-    "verification-tab-name": "ߛߊߞߍߟߌ"
+    "verification-tab-name": "ߛߊߞߍߟߌ",
+    "action_translation_skip": "ߊ ߓߟߏߞߊ߲߬",
+    "action_translation_validate": "ߥߏ ߟߊߦߍߟߍ",
+    "action_verification_skip": "ߊ ߓߟߏߞߊ߬",
+    "action_verification_validate": "ߥߏ ߟߊߦߍߟߍ",
+    "action_verification_correct": "Correct",
+    "empty_massage": "No assigned task available"
 }
