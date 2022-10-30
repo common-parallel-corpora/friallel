@@ -365,9 +365,9 @@ const updateTranslationView = function(currentTranslations, target_lang){
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
   });
   let inputDirection = getTranslationTextDirection(target_lang);
-  $("#resulttext").addClass(inputDirection);
   $("#target_language").text(target_lang);
   $("#translation_sources").html(uiTranslationSourcesDom);
+  $("#resulttext").addClass(inputDirection);
   $("#resulttext").val('');
   hideLoader();
 }
@@ -385,6 +385,7 @@ const updateVerificationView = function(currentTranslations, textToVerify) {
   $("#verification_correct_btn").hide();
   $("#verification_validate_btn").show();
   $("#translation_sources").html(uiTranslationSourcesDom);
+  $("#resulttext").addClass(inputDirection);
   $("#resulttext").val(textToVerify);
   hideLoader();
 }
