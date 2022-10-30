@@ -74,13 +74,17 @@ const COMPLETED_TASK_STATUS = "completed";
 const UNASSIGNED_TASK_STATUS = "unassigned";
 const ACCEPTED_TASK_STATUS = "accepted";
 const REJECTED_TASK_STATUS = "rejected";
-
+const CONFIG_COLLECTION_NAME ="config";
+const CONFIG_LANGUAGES_DOCUMENT ="languages";
 
 //tabs names
 const TRANSLATION_TAB_NAME = "translation";
 const VERIFICATION_TAB_NAME = "verification";
 
 const UI_LANG_KEY = "uiLang";
+
+// const tasksQrySnap = await getDocs(tasksQry);
+
 
 
 /**
@@ -156,6 +160,15 @@ onAuthStateChanged(auth, (user) => {
   saveUser(currentUser);
   $("#username").html(currentUser.displayName);
   $("#photo").attr("src", currentUser.photoURL);
+  
+  const docRef = doc(firestore, CONFIG_COLLECTION_NAME, CONFIG_LANGUAGES_DOCUMENT);
+  const docSnap = getDoc(docRef).then((doc)=>{
+    if(doc.exists()){
+      languageConfiguation = doc.data();
+      console.log("LANGUAGE CONFIG", languageConfiguation);
+    }
+  });
+  
 });
 //---------------------
 
@@ -169,6 +182,9 @@ var defaultLanguage = "eng_Latn";
 var activeTab;
 
 var currentTextToVerify = null;
+var languageConfiguation = {
+  writingDirection: {}
+};
 
 
 function inactiveAllTab(){
@@ -327,18 +343,20 @@ const getTasks = async(tasksQry, callback) => {
 /**
  * VIEW
  */
-
 function getTranslationTextDirection(target_lang) {
-  switch(target_lang) {
-    case "nqo_Nkoo":
-      return "rtl cursor-left"; // Right to left, cursor on left
-    default:
-      return "ltr cursor-right"; // Left to right, cursor right
+  let writingDirection = "ltr"
+  if (target_lang in languageConfiguation.writingDirection){
+    writingDirection = languageConfiguation.writingDirection[target_lang];
   }
+  return writingDirection;
 }
 
 const buildTranslationSourceDom = function(uiTranslation) {
-  return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
+  let writingDirection = 'ltr';
+  if (uiTranslation.lang in languageConfiguation.writingDirection){
+    writingDirection = languageConfiguation.writingDirection[uiTranslation.lang];
+  }
+  return `<div class=\"text-to-translate ${writingDirection} col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>` + uiTranslation.translation + "<p></div>";
 }
 
 const updateTranslationView = function(currentTranslations, target_lang){
