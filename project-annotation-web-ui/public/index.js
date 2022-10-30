@@ -74,7 +74,8 @@ const COMPLETED_TASK_STATUS = "completed";
 const UNASSIGNED_TASK_STATUS = "unassigned";
 const ACCEPTED_TASK_STATUS = "accepted";
 const REJECTED_TASK_STATUS = "rejected";
-
+const CONFIG_COLLECTION_NAME ="config";
+const CONFIG_LANGUAGES_DOCUMENT ="languages";
 
 //tabs names
 const TRANSLATION_TAB_NAME = "translation";
@@ -156,6 +157,14 @@ onAuthStateChanged(auth, (user) => {
   saveUser(currentUser);
   $("#username").html(currentUser.displayName);
   $("#photo").attr("src", currentUser.photoURL);
+  
+  const docRef = doc(firestore, CONFIG_COLLECTION_NAME, CONFIG_LANGUAGES_DOCUMENT);
+  const docSnap = getDoc(docRef).then((doc)=>{
+    if(doc.exists()){
+      languageConfiguation = doc.data();
+    }
+  });
+  
 });
 //---------------------
 
@@ -169,6 +178,9 @@ var defaultLanguage = "eng_Latn";
 var activeTab;
 
 var currentTextToVerify = null;
+var languageConfiguation = {
+  writingDirection: {}
+};
 
 
 function inactiveAllTab(){
@@ -230,14 +242,20 @@ const loadTranslations = async(tasks, callback) => {
       if(res?.translations != null) {
         let trans = null;
         let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
-        for(trans of res.translations) {
-          if(neededLangs.includes(trans?.lang)){
-            currentTranslations.push({
-              lang : trans.lang,
-              translation: trans.translation
-            });
+
+        let neededLang = null;
+        for(neededLang of neededLangs) {
+          for(trans of res.translations) {
+              if (trans?.lang === neededLang) {
+                currentTranslations.push({
+                  lang : trans.lang,
+                  translation: trans.translation
+                });
+                break;
+              }
           }
         }
+
         //console.log("taskData: ", taskData);
         var textToVerify = null;
         if (taskData.type =="verification") {
@@ -296,7 +314,8 @@ const getVerificationTasks = async() => {
     orderBy("priority")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
-    updateVerificationView(currentTranslations, textToVerify);
+    console.log("TASK DATA", task.data());
+    updateVerificationView(currentTranslations, textToVerify, task.data().target_lang);
     currentTask = task;
   });
 }
@@ -321,18 +340,20 @@ const getTasks = async(tasksQry, callback) => {
 /**
  * VIEW
  */
-
 function getTranslationTextDirection(target_lang) {
-  switch(target_lang) {
-    case "nqo_Nkoo":
-      return "rtl cursor-left"; // Right to left, cursor on left
-    default:
-      return "ltr cursor-right"; // Left to right, cursor right
+  let writingDirection = "ltr"
+  if (target_lang in languageConfiguation.writingDirection){
+    writingDirection = languageConfiguation.writingDirection[target_lang];
   }
+  return writingDirection;
 }
 
 const buildTranslationSourceDom = function(uiTranslation) {
-  return "<div class=\"text-to-translate col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>" + uiTranslation.translation + "<p></div>";
+  let writingDirection = 'ltr';
+  if (uiTranslation.lang in languageConfiguation.writingDirection){
+    writingDirection = languageConfiguation.writingDirection[uiTranslation.lang];
+  }
+  return `<div class=\"text-to-translate ${writingDirection} col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4\"><p>` + uiTranslation.translation + "<p></div>";
 }
 
 const updateTranslationView = function(currentTranslations, target_lang){
@@ -344,15 +365,16 @@ const updateTranslationView = function(currentTranslations, target_lang){
   currentTranslations.forEach ( uiTranslation => {
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
   });
-  let inputDirection = getTranslationTextDirection(target_lang);
-  $("#resulttext").addClass(inputDirection);
+  
   $("#target_language").text(target_lang);
   $("#translation_sources").html(uiTranslationSourcesDom);
+  let inputDirection = getTranslationTextDirection(target_lang);
+  $("#resulttext").addClass(inputDirection);
   $("#resulttext").val('');
   hideLoader();
 }
 
-const updateVerificationView = function(currentTranslations, textToVerify) {
+const updateVerificationView = function(currentTranslations, textToVerify, target_lang) {
   if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
@@ -365,6 +387,8 @@ const updateVerificationView = function(currentTranslations, textToVerify) {
   $("#verification_correct_btn").hide();
   $("#verification_validate_btn").show();
   $("#translation_sources").html(uiTranslationSourcesDom);
+  let inputDirection = getTranslationTextDirection(target_lang);
+  $("#resulttext").addClass(inputDirection);
   $("#resulttext").val(textToVerify);
   hideLoader();
 }
