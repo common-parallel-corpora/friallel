@@ -42,12 +42,22 @@ load-flores-dev-test:
 		--dataset-name flores-devtest 
 #		--langs eng_Latn fra_Latn
 
-load-devtest-data:
+load-dataset-fria-dataset-01:
 	python scripts/load_dataset.py  \
 		--env dev \
 		--dataset-root-dir data/dev_dataset/dev \
-		--dataset-name datatest-dev 
+		--dataset-name fria-dataset-01 
 #		--langs eng_Latn fra_Latn
+
+create-translation-workflows-fria-dataset-01:
+	python scripts/create_translation_workflows.py  \
+		--env dev \
+		--dataset-names fria-dataset-01 \
+		--target-lang nqo_Nkoo \
+		--workflow-name default-translation-workflow \
+		--initial-priority 1000
+
+
 
 
 create-translation-workflows-flores-dev:

@@ -3,6 +3,10 @@
     color: red;
 }
 
+.app-title {
+    font-size: larger !important;
+}
+
 html, body { height: 100%; box-sizing: border-box;}
 body { margin : 0; padding: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #CECECE;}
 p {
@@ -100,6 +104,14 @@ body {
     font-weight: 700;
     font-size: 1.2em;
 }
+
+.text-to-translate.rtl p {
+    font-weight: 700;
+    font-size: 1.2em;
+    direction: rtl;
+    cursor: left;
+}
+
 #resulttext {
     min-height: 160px;
     border-radius: 7px;
@@ -111,7 +123,9 @@ body {
 }
 #resulttext.rtl {
     direction: rtl;
+    text-align: right;
 }
+
 #resulttext.cursor-left {
     text-align: right;
 }
