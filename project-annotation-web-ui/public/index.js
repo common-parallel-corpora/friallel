@@ -83,9 +83,6 @@ const VERIFICATION_TAB_NAME = "verification";
 
 const UI_LANG_KEY = "uiLang";
 
-// const tasksQrySnap = await getDocs(tasksQry);
-
-
 
 /**
  * SYNCHRONISATION STATE
@@ -165,7 +162,6 @@ onAuthStateChanged(auth, (user) => {
   const docSnap = getDoc(docRef).then((doc)=>{
     if(doc.exists()){
       languageConfiguation = doc.data();
-      console.log("LANGUAGE CONFIG", languageConfiguation);
     }
   });
   
