@@ -230,14 +230,20 @@ const loadTranslations = async(tasks, callback) => {
       if(res?.translations != null) {
         let trans = null;
         let neededLangs = currentUser.firestoreUser?.translation_from_languages?.length > 0 ? currentUser.firestoreUser.translation_from_languages : [defaultLanguage]
-        for(trans of res.translations) {
-          if(neededLangs.includes(trans?.lang)){
-            currentTranslations.push({
-              lang : trans.lang,
-              translation: trans.translation
-            });
+
+        let neededLang = null;
+        for(neededLang of neededLangs) {
+          for(trans of res.translations) {
+              if (trans?.lang === neededLang) {
+                currentTranslations.push({
+                  lang : trans.lang,
+                  translation: trans.translation
+                });
+                break;
+              }
           }
         }
+
         //console.log("taskData: ", taskData);
         var textToVerify = null;
         if (taskData.type =="verification") {
