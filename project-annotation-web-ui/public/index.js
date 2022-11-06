@@ -303,6 +303,18 @@ const getTranslationTasks = async() => {
     updateTranslationView(currentTranslations, task.data().target_lang);
     currentTask = task;
   });
+  getCompletedTasks("translation");
+}
+
+const getCompletedTasks = async(type) => {
+  const completeTasksQry = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "completed"),
+    where("type", "==", "translation")
+  );
+  const tasksQrySnap = await getDocs(completeTasksQry);
+  $("#counter").text(tasksQrySnap.docs.length);
 }
 
 const getVerificationTasks = async() => {
@@ -317,6 +329,7 @@ const getVerificationTasks = async() => {
     updateVerificationView(currentTranslations, textToVerify);
     currentTask = task;
   });
+  getCompletedTasks("verification");
 }
 
 const getTasks = async(tasksQry, callback) => {
