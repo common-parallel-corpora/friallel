@@ -19,5 +19,6 @@
     "action_verification_skip": "Ignorer",
     "action_verification_validate": "Valider",
     "action_verification_correct": "Corriger",
-    "empty_massage": "Vous n'avez aucune tâche"
+    "empty_massage": "Vous n'avez aucune tâche",
+    "completed_tasks": "Taches éffectuée : "
 }
