@@ -87,3 +87,6 @@ import-flores-devtest-translations:
 		--input-csv-translation-colname nqo_Nkoo.devtest \
 		--translation-target-lang nqo_Nkoo
 	
+generate-prod-accounting-report:
+	mkdir -p data/csv/prod_accounting_reports
+	python scripts/accounting_statements.py  --env prod > data/csv/prod_accounting_reports/accounting_report.csv
