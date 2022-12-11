@@ -166,7 +166,7 @@ async function getActiveTranslatorsAndVerifiers() {
       }
     });
   });
-  return activeUsers;
+  return activeUsers.sort(() => (Math.random() > .5) ? 1 : -1);
 }
 
 
