@@ -20,5 +20,5 @@
     "action_verification_validate": "Approve",
     "action_verification_correct": "Update",
     "empty_massage": "You don't have any task",
-    "completed_tasks": "Completed task : "
+    "completed_tasks": "Completed task"
 }
