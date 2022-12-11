@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, updateDoc, Timestamp, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, orderBy, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, updateDoc, Timestamp, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import * as env from "./environment/environment.js";
@@ -130,6 +130,9 @@ var logout = document.getElementById("logout");
 var tabTranslate = document.getElementById("translorTab");
 var tabVerify = document.getElementById("verifierTab");
 
+var completeTranslations = 0;
+var completeVerifications = 0;
+
 const showTabs = function() {
   firestoreUser.isActiveTranslator ? $("#translorTab").show() : $('#translorTab').hide();
   firestoreUser.isActiveVerifier ? $("#verifierTab").show() : $('#verifierTab').hide();
@@ -164,8 +167,24 @@ onAuthStateChanged(auth, (user) => {
       languageConfiguation = doc.data();
     }
   });
-  
+  getCompletedTasks("translation");
+  getCompletedTasks("verification");
 });
+
+async function getCompletedTasks(type) {
+  const query_ = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "completed"),
+    where("type", "==", type)
+  );
+  const snapshot = await getDocs(query_);
+  if(type === "translation") {
+    completeTranslations = snapshot.docs.length;
+  } else {
+    completeVerifications = snapshot.docs.length;
+  }
+}
 //---------------------
 
 /**
@@ -210,6 +229,7 @@ function enableTranslateTab() {
   $("#translation_actions").removeClass("hide");
   $("#verification_actions").addClass("hide");
   active(tabTranslate);
+  $("#counter").text(completeTranslations);
   getTranslationTasks();
 }
 
@@ -218,6 +238,7 @@ function enableVerificationTab() {
   $("#translation_actions").addClass("hide");
   $("#verification_actions").removeClass("hide");
   active(tabVerify);
+  $("#counter").text(completeVerifications);
   getVerificationTasks()
 }
 
@@ -287,8 +308,10 @@ const getAllTasks = async() => {
     where("assignee_id", "==", currentUser.uid), 
     where("status", "==", "assigned")
   );
-  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {});
-  showTabs();
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
+    showTabs();
+  });
+  
 }
 
 const getTranslationTasks = async() => {
@@ -303,18 +326,6 @@ const getTranslationTasks = async() => {
     updateTranslationView(currentTranslations, task.data().target_lang);
     currentTask = task;
   });
-  getCompletedTasks("translation");
-}
-
-const getCompletedTasks = async(type) => {
-  const completeTasksQry = query(
-    collection(firestore, ANNOTATION_TASKS),
-    where("assignee_id", "==", currentUser.uid), 
-    where("status", "==", "completed"),
-    where("type", "==", "translation")
-  );
-  const tasksQrySnap = await getDocs(completeTasksQry);
-  $("#counter").text(tasksQrySnap.docs.length);
 }
 
 const getVerificationTasks = async() => {
@@ -329,7 +340,6 @@ const getVerificationTasks = async() => {
     updateVerificationView(currentTranslations, textToVerify);
     currentTask = task;
   });
-  getCompletedTasks("verification");
 }
 
 const getTasks = async(tasksQry, callback) => {
@@ -530,6 +540,8 @@ const updateTranslationTask = async function(status, newValue) {
   });
   console.log("Translation task updated successfully");
   currentTask = null;
+  completeTranslations ++;
+  $("#counter").text(completeTranslations);
   getTranslationTasks();
 }
 const updateVerificationTask = async function(status, verificationStatus, newValue) {
@@ -552,6 +564,8 @@ const updateVerificationTask = async function(status, verificationStatus, newVal
   });
   console.log("Verification task updated successfully");
   currentTask = null;
+  completeVerifications ++;
+  $("#counter").text(completeVerifications);
   getVerificationTasks();
 }
 

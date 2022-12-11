@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
+
+    <!--  Intégration de bootstrap à la page -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title data-i18n-key="app-title">FS Annotation Web UI</title>
@@ -181,7 +188,7 @@
         <div class="synchro-state d-flex">
           <p id="synchrotext" data-i18n-key="sync-state">Synchro serveur</p>
           <div id="connection-state" class="synchro-light"></div>
-          <img class="logout" id="logout" src="material/assets/img/icons/logout.png" width="10" height="10"/>
+          <i class="fa fa-sign-out ml-2" id="logout" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -201,11 +208,14 @@
         </li>
       </ul>
 
-      <div class="counter">
-        <span data-i18n-key="completed_tasks"> </span><span id="counter"> 5</span> 
+      <div class="container counter" id="counterBloc">
+        <span class="badge badge-pill badge-success">
+          <span id="counter"> </span>
+          <span data-i18n-key="completed_tasks"> </span>
+        </span>
       </div>
-
       <div class="container" id="translationBloc">
+
         <div
           id="translation_sources"
           class="row d-flex justify-content-center mb-2"
