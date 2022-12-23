@@ -456,6 +456,7 @@ const actionSaveTranslation = function(){
   console.log("Sauvegarde declenché sur le text : ", translationValue);
   showLoader()
   updateTranslationTask(COMPLETED_TASK_STATUS, translationValue);
+  completeTranslations ++;
   currentInteraction = null;
 }
 const actionSkipTranslation = function(){
@@ -472,6 +473,7 @@ const actionSaveVerification = function(){
   showLoader();
   var verificationStatus = currentTextToVerify == verifiedText ? ACCEPTED_TASK_STATUS : REJECTED_TASK_STATUS;
   updateVerificationTask(COMPLETED_TASK_STATUS, verificationStatus, verifiedText);
+  completeVerifications ++;
   currentInteraction = null;
 }
 const actionSkipVerification = function(){
@@ -522,13 +524,10 @@ function isValidTask() {
 }
 
 const updateTranslationTask = async function(status, newValue) {
-
   if (!isValidTask()) {
     return;
   }
-
   const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
-
   updateDoc(docRef, {
     status: status,
     translated_sentence: newValue,
@@ -540,18 +539,15 @@ const updateTranslationTask = async function(status, newValue) {
   });
   console.log("Translation task updated successfully");
   currentTask = null;
-  completeTranslations ++;
   $("#counter").text(completeTranslations);
   getTranslationTasks();
 }
-const updateVerificationTask = async function(status, verificationStatus, newValue) {
 
+const updateVerificationTask = async function(status, verificationStatus, newValue) {
   if (!isValidTask()) {
     return;
   }
-
   const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
-
   updateDoc(docRef, {
     status: status,
     verification_status: verificationStatus,
@@ -564,7 +560,6 @@ const updateVerificationTask = async function(status, verificationStatus, newVal
   });
   console.log("Verification task updated successfully");
   currentTask = null;
-  completeVerifications ++;
   $("#counter").text(completeVerifications);
   getVerificationTasks();
 }
