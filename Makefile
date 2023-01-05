@@ -90,3 +90,13 @@ import-flores-devtest-translations:
 generate-prod-accounting-report:
 	mkdir -p data/csv/prod_accounting_reports
 	python scripts/accounting_statements.py  --env prod > data/csv/prod_accounting_reports/accounting_report.csv
+
+
+
+
+## NLLB Seed Dataset
+data/NLLB-Seed.zip: data/
+	wget --trust-server-names https://tinyurl.com/NLLBSeed -O data/NLLB-Seed.zip
+
+data/NLLB-Seed: data/NLLB-Seed.zip
+	unzip data/NLLB-Seed.zip -d data/
