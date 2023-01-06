@@ -100,3 +100,18 @@ data/NLLB-Seed.zip: data/
 
 data/NLLB-Seed: data/NLLB-Seed.zip
 	unzip data/NLLB-Seed.zip -d data/
+
+data/NLLB-Seed/bam_Latn-eng_Latn/bam_Nkoo:
+	cat data/NLLB-Seed/bam_Latn-eng_Latn/bam_Latn | python -m detransliterator.tool --model-name latin2nqo_001.35 > data/NLLB-Seed/bam_Latn-eng_Latn/bam_Nkoo
+
+load-nllb-bam:
+	python scripts/load_dataset.py  --env dev --dataset-root-dir data/NLLB-Seed/bam_Latn-eng_Latn --dataset-name nllb-seed-bam --batch-size 500
+
+create-translation-workflows-nllb-seed-bam:
+	python scripts/create_translation_workflows.py  \
+		--env dev \
+		--dataset-names nllb-seed-bam \
+		--target-lang nqo_Nkoo \
+		--workflow-name default-translation-workflow \
+		--initial-priority 5000 \
+		--batch-size 500
