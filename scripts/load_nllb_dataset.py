@@ -10,21 +10,8 @@ import parallel_corpus_utils
 
 def create_dataset_collection(args):
     fs_client = firebase_utils.get_firestore_client(args.env)
-    batch = fs_client.batch()
-    batch.commit()
     for sentence_ix, sentence_doc_data in generate_dataset_sentences(args):
-        # store_sentence(fs_client, args.dataset_name, sentence_ix, sentence_doc_data)
-        document_ref = fs_client.document(f'dataset-{args.dataset_name}/{sentence_ix:010}')
-        # document.create(sentence_doc_data)
-        batch.set(document_ref, sentence_doc_data)
-        if len(batch) >= args.batch_size:
-            print(f"Inserting {len(batch)} sentences")
-            batch.commit()
-            batch = fs_client.batch()
-    
-    if len(batch) >= 0:
-        print(f"Inserting {len(batch)} workflows")
-        batch.commit()
+        store_sentence(fs_client, args.dataset_name, sentence_ix, sentence_doc_data)
 
 
 def generate_dataset_sentences(args):
@@ -58,9 +45,9 @@ def generate_dataset_sentences(args):
         
 
 
-#def store_sentence(fs_client, dataset_name, sentence_id, sentence_document_data):
-#    document = fs_client.document(f'dataset-{dataset_name}/{sentence_id:010}')
-#    document.create(sentence_document_data)
+def store_sentence(fs_client, dataset_name, sentence_id, sentence_document_data):
+    document = fs_client.document(f'dataset-{dataset_name}/{sentence_id:010}')
+    document.create(sentence_document_data)
 
 
 def main(args):
@@ -73,7 +60,6 @@ def parse_args():
     parser.add_argument("--dataset-root-dir", required=True)
     parser.add_argument("--dataset-name", required=True)
     parser.add_argument("--langs", nargs="*")
-    parser.add_argument("--batch-size", default=200, type=int)
     
     return parser.parse_args()
 
