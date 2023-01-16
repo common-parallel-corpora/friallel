@@ -211,7 +211,6 @@ typed-ast==1.4.2
 typing-extensions==3.7.4.3
 uritemplate==4.1.1
 urllib3==1.26.12
--e git+https://github.com/mdoumbouya/acpedagogy.git@8c355494abdf4be472c8032ab4ee1f1effb161a7#egg=vec2pedagogy_mdoumbouya
 virtualenv==20.4.2
 waitress==2.1.2
 wcwidth==0.2.5
