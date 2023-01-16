@@ -3,6 +3,8 @@ from pathlib import Path
 import torch
 import numpy as np
 import scipy
+import scipy.spatial
+import scipy.optimize
 from tqdm import tqdm
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
