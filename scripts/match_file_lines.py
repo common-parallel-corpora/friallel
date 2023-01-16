@@ -18,9 +18,13 @@ def parse_args():
 
 
 def read_file_lines(p):
+    lines = []
     with open(p) as f:
-        return [l.strip() for l in f]# [:10]
-
+        for line in f:
+            for c in ['\"', '\'', "\."]:
+                line = line.replace(c, " ")
+            lines.append(line.strip())
+    return lines
 
 def lines_to_vectors(lines):
     tokenizer = torch.hub.load('huggingface/pytorch-transformers', 'tokenizer', 'bert-base-uncased')    # Download vocabulary from S3 and cache.
@@ -45,9 +49,12 @@ def main(args):
     vectors_1 = lines_to_vectors(lines_1)
     vectors_2 = lines_to_vectors(lines_2)
     print("computing distance matrix")
+    
     distance_matrix = scipy.spatial.distance_matrix(vectors_1, vectors_2)
     print("computing assignment")
     ind1, ind2 = scipy.optimize.linear_sum_assignment(distance_matrix)
+    for p in args.output_files:
+        Path(p).parent.mkdir(parents=True, exist_ok=True)
     np.savetxt(args.output_files[0], ind1.astype(int), fmt='%d')
     np.savetxt(args.output_files[1], ind2.astype(int), fmt='%d')
     print("done")
