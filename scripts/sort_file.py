@@ -26,6 +26,7 @@ def main(args):
     print(f"read {len(input_lines)} input lines")
     print(f"read {len(output_orders)} order lines")
 
+    Path(args.output_file).parent.mkdir(exist_ok=True, parents=True)
     with open(args.output_file, "w") as of:
         for ix in output_orders:
             of.write(input_lines[ix])
