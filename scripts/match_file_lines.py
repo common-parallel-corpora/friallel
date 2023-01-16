@@ -5,6 +5,7 @@ import numpy as np
 import scipy
 import scipy.spatial
 import scipy.optimize
+from sklearn.metrics.pairwise import cosine_distances
 from tqdm import tqdm
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -32,12 +33,10 @@ def lines_to_vectors(lines):
     vectors = []
     for l in tqdm(lines):
         line_tokens = torch.tensor([tokenizer.encode(l)])
-        # print(line_tokens.shape)
         output = model(line_tokens)
-        # print(output)
-        vector = output.pooler_output
-        # print(vector.shape)
-        vectors.append(vector.detach().numpy())
+        output_vectors = output.last_hidden_state.detach().numpy()
+        vector = np.sum(output_vectors, axis=(0,1))
+        vectors.append(vector)
     return np.vstack(vectors)
 
 
@@ -50,7 +49,8 @@ def main(args):
     vectors_2 = lines_to_vectors(lines_2)
     print("computing distance matrix")
     
-    distance_matrix = scipy.spatial.distance_matrix(vectors_1, vectors_2)
+    distance_matrix = cosine_distances(vectors_1, vectors_2)
+    # distance_matrix = scipy.spatial.distance_matrix(vectors_1, vectors_2)
     print("computing assignment")
     ind1, ind2 = scipy.optimize.linear_sum_assignment(distance_matrix)
     for p in args.output_files:
