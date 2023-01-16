@@ -138,6 +138,14 @@ generate-nllb-alignment-command-lines:
 
 
 
+test-align:
+	python scripts/match_file_lines.py \
+		tmp/eng_Latn_reference \
+		tmp/eng_Latn_ace_Arab \
+		--output-files 	tmp/eng_Latn_reference.order.txt tmp/eng_Latn_ace_Arab.order.txt
+
+	python scripts/sort_file.py
+
 
 align-nllb-eng:
 	python scripts/match_file_lines.py data/Friasoft-NLLB-Seed/eng_Latn data/NLLB-Seed/ace_Arab-eng_Latn/eng_Latn --output-files data/Friasoft-NLLB-Seed/order_files/reference_ace_Arab-eng_Latn.order.txt data/Friasoft-NLLB-Seed/order_files/ace_Arab-eng_Latn.order.txt
