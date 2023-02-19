@@ -20,7 +20,7 @@ def parse_args():
 
 def read_file_lines(p):
     lines = []
-    with open(p) as f:
+    with open(p, encoding="utf8") as f:
         for line in f:
             for c in ['\"', '\'', "\."]:
                 line = line.replace(c, " ")
