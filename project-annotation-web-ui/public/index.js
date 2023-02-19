@@ -354,7 +354,7 @@ const getVerificationTasks = async() => {
     orderBy("priority")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
-    updateVerificationView(currentTranslations, textToVerify);
+    updateVerificationView(currentTranslations, textToVerify, task.data().target_lang);
     currentTask = task;
   });
 }
@@ -412,7 +412,7 @@ const updateTranslationView = function(currentTranslations, target_lang){
   hideLoader();
 }
 
-const updateVerificationView = function(currentTranslations, textToVerify) {
+const updateVerificationView = function(currentTranslations, textToVerify, target_lang) {
   if(!currentTranslations || !(currentTranslations.length > 0)){
     return;
   }
@@ -425,7 +425,8 @@ const updateVerificationView = function(currentTranslations, textToVerify) {
   $("#verification_correct_btn").hide();
   $("#verification_validate_btn").show();
   $("#translation_sources").html(uiTranslationSourcesDom);
-  $("#resulttext").addClass("rtl");
+  let inputDirection = getTranslationTextDirection(target_lang);
+  $("#resulttext").addClass(inputDirection);
   $("#resulttext").val(textToVerify);
   hideLoader();
 }
