@@ -132,7 +132,8 @@ async function assignNextTaskToUser(user, taskCountToBeAssigned, taskType, exclu
               await unassignedTask.ref.set({
                 "status": constantAssigned,
                 "assignee_id": user.id,
-                "assigned_date": new Date()
+                "assigned_date": new Date(),
+                "assigned_date_expiration": new Date(new Date().getTime() + (maxAssignmentSeconds * 1000))
               }, {merge: true}).then(()=>{
                 console.log(`Assigned ${taskType} Task# ${unassignedTask.id} to User#${user.id}`);
               });
@@ -165,7 +166,7 @@ async function getActiveTranslatorsAndVerifiers() {
       }
     });
   });
-  return activeUsers;
+  return activeUsers.sort(() => (Math.random() > .5) ? 1 : -1);
 }
 
 

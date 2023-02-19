@@ -404,9 +404,10 @@ const updateTranslationView = function(currentTranslations, target_lang){
   currentTranslations.forEach ( uiTranslation => {
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
   });
-  let inputDirection = getTranslationTextDirection(target_lang);
+  
   $("#target_language").text(target_lang);
   $("#translation_sources").html(uiTranslationSourcesDom);
+  let inputDirection = getTranslationTextDirection(target_lang);
   $("#resulttext").addClass(inputDirection);
   $("#resulttext").val('');
   hideLoader();
