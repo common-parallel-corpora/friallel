@@ -284,8 +284,8 @@ data/Multitext-NLLB-Seed/multitext:
 
 
 
-test-load-nllb-seed:
+load-nllb-seed:
 	python scripts/load_dataset.py  \
 		--env dev --dataset-root-dir data/Multitext-NLLB-Seed/multitext/ \
 		--dataset-name nllb-seed-bam \
-		--batch-size 500
+		--batch-size 200
