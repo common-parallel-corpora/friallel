@@ -118,11 +118,11 @@ data/NLLB-Seed/bam_Latn-eng_Latn/bam_Nkoo:
 	cat data/NLLB-Seed/bam_Latn-eng_Latn/bam_Latn | python -m detransliterator.tool --model-name latin2nqo_001.35 > data/NLLB-Seed/bam_Latn-eng_Latn/bam_Nkoo
 
 load-nllb-bam:
-	python scripts/load_dataset.py  --env prod --dataset-root-dir data/NLLB-Seed/bam_Latn-eng_Latn --dataset-name nllb-seed-bam --batch-size 500
+	python scripts/load_dataset.py  --env dev --dataset-root-dir data/NLLB-Seed/bam_Latn-eng_Latn --dataset-name nllb-seed-bam --batch-size 500
 
 create-translation-workflows-nllb-seed-bam:
 	python scripts/create_translation_workflows.py  \
-		--env prod \
+		--env dev \
 		--dataset-names nllb-seed-bam \
 		--target-lang nqo_Nkoo \
 		--workflow-name default-translation-workflow \
@@ -149,15 +149,6 @@ generate-nllb-alignment-command-lines:
 		done; \
 	done
 
-
-
-test-align:
-	python scripts/match_file_lines.py \
-		tmp/eng_Latn_reference \
-		tmp/eng_Latn_ace_Arab \
-		--output-files 	tmp/eng_Latn_reference.order.txt tmp/eng_Latn_ace_Arab.order.txt
-
-	python scripts/sort_file.py
 
 
 align-nllb-eng:
@@ -279,3 +270,22 @@ align-nllb-eng:
 	python scripts/match_file_lines.py data/Multitext-NLLB-Seed/eng_Latn data/NLLB-Seed/eng_Latn-vec_Latn/eng_Latn --output-files data/Multitext-NLLB-Seed/order_files/reference_eng_Latn-vec_Latn.order.txt data/Multitext-NLLB-Seed/order_files/eng_Latn-vec_Latn.order.txt
 	python scripts/sort_file.py --input-file data/NLLB-Seed/eng_Latn-vec_Latn/eng_Latn --order-file data/Multitext-NLLB-Seed/order_files/eng_Latn-vec_Latn.order.txt --output-file data/Multitext-NLLB-Seed/re_ordered/eng_Latn-vec_Latn/eng_Latn
 	python scripts/sort_file.py --input-file data/NLLB-Seed/eng_Latn-vec_Latn/vec_Latn --order-file data/Multitext-NLLB-Seed/order_files/eng_Latn-vec_Latn.order.txt --output-file data/Multitext-NLLB-Seed/re_ordered/eng_Latn-vec_Latn/vec_Latn
+
+
+data/Multitext-NLLB-Seed/multitext:
+	rm -rf data/Multitext-NLLB-Seed/multitext/
+	mkdir -p data/Multitext-NLLB-Seed/multitext/
+
+	# copy reordered lang files (along with multiple eng_Latn)
+	cp data/Multitext-NLLB-Seed/re_ordered/*/* data/Multitext-NLLB-Seed/multitext/
+	
+	# override eng_Latn with reference
+	cp data/Multitext-NLLB-Seed/eng_Latn data/Multitext-NLLB-Seed/multitext/
+
+
+
+test-load-nllb-seed:
+	python scripts/load_dataset.py  \
+		--env dev --dataset-root-dir data/Multitext-NLLB-Seed/multitext/ \
+		--dataset-name nllb-seed-bam \
+		--batch-size 500
