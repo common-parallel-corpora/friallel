@@ -47,10 +47,8 @@ def build_edit_distance_matrix(lines_1, lines_2):
     n2 = len(lines_2)
     distance_matrix = np.zeros((n1, n2))
     for i in tqdm(range(n1)):
-        for j in range(i, n2):
-            dist = editdistance.eval(lines_1[i], lines_2[j])
-            distance_matrix[i, j] = dist
-            distance_matrix[j, i] = dist
+        for j in range(n2):
+            distance_matrix[i, j] = editdistance.eval(lines_1[i], lines_2[j])
     return distance_matrix
 
 
