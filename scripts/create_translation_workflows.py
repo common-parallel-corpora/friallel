@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 import csv
 from pathlib import Path
 import firebase_utils
+import random
 
 
 def get_collection_name(dataset_name):
@@ -23,7 +24,14 @@ def main(args):
     batch.commit()
 
     for dataset_name in args.dataset_names:
-        for document_id in generate_sentence_ids(fs_client, dataset_name):
+        if args.random_subset_size != -1:
+            print(f"Inserting workflows for a subset of {args.random_subset_size} sentences.")
+            sentence_ids = list(generate_sentence_ids(fs_client, dataset_name))
+            sentence_ids = random.sample(sentence_ids, k=args.random_subset_size)
+        else:
+            sentence_ids = generate_sentence_ids(fs_client, dataset_name)
+
+        for document_id in sentence_ids:
             collection_id = get_collection_name(dataset_name)
             translation_workflow_doc_ref = fs_client.collection('workflows').document()
             translation_workflow_doc_data = {
@@ -56,6 +64,7 @@ def parse_args():
     parser.add_argument("--initial-priority", type=int, required=True)
     parser.add_argument("--batch-size", type=int, default=100)
     parser.add_argument("--target-lang", required=True)
+    parser.add_argument("--random-subset-size", required=False, default=-1, type=int)
     
     return parser.parse_args()
 
