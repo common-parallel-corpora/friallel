@@ -21,7 +21,7 @@ def main(args):
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("data_files", nargs="+")
-    parser.add_argument("--output-file")
+    parser.add_argument("--output-file", required=True)
     return parser.parse_args()
 
 
