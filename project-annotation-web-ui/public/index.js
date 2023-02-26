@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-analytics.js";
-import { doc, getDoc, updateDoc, Timestamp, arrayUnion, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, orderBy, FieldValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
+import { doc, getDoc, updateDoc, Timestamp, getDocs, setDoc, getFirestore, enableIndexedDbPersistence, collection, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import * as env from "./environment/environment.js";
@@ -47,7 +47,7 @@ const firestore = getFirestore(app);
 var currentUser;
 var firestoreUser;
 
-const auth = getAuth();
+export const auth = getAuth();
 
 console.log("before enableIndexedDbPersistence");
 enableIndexedDbPersistence(firestore)
@@ -82,6 +82,7 @@ const TRANSLATION_TAB_NAME = "translation";
 const VERIFICATION_TAB_NAME = "verification";
 
 const UI_LANG_KEY = "uiLang";
+const ACTIVE_TAB = "active_tab";
 
 
 /**
@@ -130,9 +131,24 @@ var logout = document.getElementById("logout");
 var tabTranslate = document.getElementById("translorTab");
 var tabVerify = document.getElementById("verifierTab");
 
+var completeTranslations = 0;
+var completeVerifications = 0;
+
 const showTabs = function() {
   firestoreUser.isActiveTranslator ? $("#translorTab").show() : $('#translorTab').hide();
   firestoreUser.isActiveVerifier ? $("#verifierTab").show() : $('#verifierTab').hide();
+  var savedTab = localStorage.getItem(ACTIVE_TAB);
+  
+  if(savedTab == TRANSLATION_TAB_NAME && firestoreUser.isActiveTranslator) {
+    tabTranslate.className="active";
+    enableTranslateTab();
+    return;
+  } else 
+  if(savedTab == VERIFICATION_TAB_NAME && firestoreUser.isActiveVerifier) {
+    tabVerify.className="active";
+    enableVerificationTab();
+    return;
+  }
 
   if (firestoreUser.isActiveTranslator) {
     tabTranslate.className="active";
@@ -164,8 +180,18 @@ onAuthStateChanged(auth, (user) => {
       languageConfiguation = doc.data();
     }
   });
-  
 });
+
+async function getCompletedTasks(type) {
+  const query_ = query(
+    collection(firestore, ANNOTATION_TASKS),
+    where("assignee_id", "==", currentUser.uid), 
+    where("status", "==", "completed"),
+    where("type", "==", type)
+  );
+  const snapshot = await getDocs(query_);
+  return snapshot.docs.length;
+}
 //---------------------
 
 /**
@@ -207,17 +233,22 @@ tabVerify.addEventListener("click",function(){
 
 function enableTranslateTab() {
   activeTab = TRANSLATION_TAB_NAME;
+  localStorage.setItem(ACTIVE_TAB, activeTab);
+  var uiLang = localStorage.getItem(UI_LANG_KEY);
   $("#translation_actions").removeClass("hide");
   $("#verification_actions").addClass("hide");
   active(tabTranslate);
+  $("#counter").text(completeTranslations);
   getTranslationTasks();
 }
 
 function enableVerificationTab() {
   activeTab = VERIFICATION_TAB_NAME;
+  localStorage.setItem(ACTIVE_TAB, activeTab);
   $("#translation_actions").addClass("hide");
   $("#verification_actions").removeClass("hide");
   active(tabVerify);
+  $("#counter").text(completeVerifications);
   getVerificationTasks()
 }
 
@@ -287,8 +318,17 @@ const getAllTasks = async() => {
     where("assignee_id", "==", currentUser.uid), 
     where("status", "==", "assigned")
   );
-  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {});
-  showTabs();
+  getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
+    //showTabs();
+  });
+
+  getCompletedTasks("translation").then(data => {
+    completeTranslations = data;
+    getCompletedTasks("verification").then(data => {
+      completeVerifications = data;
+      showTabs();
+    });
+  });
 }
 
 const getTranslationTasks = async() => {
@@ -314,7 +354,6 @@ const getVerificationTasks = async() => {
     orderBy("priority")
   );
   getTasks(tasksQry, (task, currentTranslations, textToVerify) => {
-    console.log("TASK DATA", task.data());
     updateVerificationView(currentTranslations, textToVerify, task.data().target_lang);
     currentTask = task;
   });
@@ -382,7 +421,7 @@ const updateVerificationView = function(currentTranslations, textToVerify, targe
   let uiTranslationSourcesDom = ""
   currentTranslations.forEach ( uiTranslation => {
     uiTranslationSourcesDom += buildTranslationSourceDom(uiTranslation);
-  })
+  });
   currentTextToVerify = textToVerify;
   $("#verification_correct_btn").hide();
   $("#verification_validate_btn").show();
@@ -434,7 +473,8 @@ $("#resulttext").on("input", () => {
 const actionSaveTranslation = function(){
   let translationValue = $("#resulttext").val().trim();
   console.log("Sauvegarde declenché sur le text : ", translationValue);
-  showLoader()
+  showLoader();
+  completeTranslations ++;
   updateTranslationTask(COMPLETED_TASK_STATUS, translationValue);
   currentInteraction = null;
 }
@@ -451,6 +491,7 @@ const actionSaveVerification = function(){
   console.log("Sauvegarde du texte de vérification currentTextToVerify : ", currentTextToVerify);
   showLoader();
   var verificationStatus = currentTextToVerify == verifiedText ? ACCEPTED_TASK_STATUS : REJECTED_TASK_STATUS;
+  completeVerifications ++;
   updateVerificationTask(COMPLETED_TASK_STATUS, verificationStatus, verifiedText);
   currentInteraction = null;
 }
@@ -502,13 +543,10 @@ function isValidTask() {
 }
 
 const updateTranslationTask = async function(status, newValue) {
-
   if (!isValidTask()) {
     return;
   }
-
   const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
-
   updateDoc(docRef, {
     status: status,
     translated_sentence: newValue,
@@ -520,16 +558,15 @@ const updateTranslationTask = async function(status, newValue) {
   });
   console.log("Translation task updated successfully");
   currentTask = null;
+  $("#counter").text(completeTranslations);
   getTranslationTasks();
 }
-const updateVerificationTask = async function(status, verificationStatus, newValue) {
 
+const updateVerificationTask = async function(status, verificationStatus, newValue) {
   if (!isValidTask()) {
     return;
   }
-
   const docRef = doc(firestore, ANNOTATION_TASKS, currentTask.id);
-
   updateDoc(docRef, {
     status: status,
     verification_status: verificationStatus,
@@ -542,6 +579,7 @@ const updateVerificationTask = async function(status, verificationStatus, newVal
   });
   console.log("Verification task updated successfully");
   currentTask = null;
+  $("#counter").text(completeVerifications);
   getVerificationTasks();
 }
 
