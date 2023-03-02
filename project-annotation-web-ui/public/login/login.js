@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-firestore.js";
-import { getAuth, auth } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import * as env from "../environment/environment.js";
 
 // Your web app's Firebase configuration
@@ -53,4 +53,4 @@ var uiConfig = {
 var ui = new firebaseui.auth.AuthUI(firebase.auth());
 // The start method will wait until the DOM is loaded.
 ui.start("#firebaseui-auth-container", uiConfig);
-export const auth = getAuth();
+const auth = getAuth();
