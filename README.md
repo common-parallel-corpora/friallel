@@ -41,23 +41,5 @@ firebase firestore:indexes
 
 # Process de test : PS conserver l’index dans la traduction par soucis de traçabilités 
 
-Traductions : 
-	Traitement par bloc : 
-	1 - 30 : Ignorer les traductions;
-	31 - 100 : Toutes les phrases sont à traduire 
-
-Vérifications N1 : 
-	Traitement par bloc : 
-	1 - 50 : Valider toutes les traductions
-	51 - 100 : Refuser toutes les traductions et soumettre de nouvelles
-
-Vérification N2 : 
-	Traitement par bloc :
-	1 - 25 : Valider toutes les traductions (2/2 validations, fin de process)
-	26 - 50 : Refuser toutes les validations (1/2 validation -> Niveau 3)
-	51 - 75 : Valider toutes les traductions (1/2 validation -> Niveau 3)
-	76 - 100 : Refuser toutes les traductions (0/2 validation -> Niveau 3)
-
-Vérification N3 : 
-	Toutes les phrases reçoivent une traduction définitive (fin de process)
+https://docs.google.com/document/d/1_DSWB4sEAa5hQDEfnxq128vgKVgYFXRmVztWWC_uY4U/edit#
 
