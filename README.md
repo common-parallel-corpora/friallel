@@ -38,3 +38,8 @@ firebase firestore:indexes
     - Create workflows
     - Optional : Run workflow-manager to create annotation tasks (translations)
     - Optionla : Import Offline translations 
+
+# Process de test : PS conserver l’index dans la traduction par soucis de traçabilités 
+
+https://docs.google.com/document/d/1_DSWB4sEAa5hQDEfnxq128vgKVgYFXRmVztWWC_uY4U/edit#
+
