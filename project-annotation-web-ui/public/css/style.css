@@ -119,8 +119,14 @@ body {
     max-width: 850px;
     font-size: 1.8em;
     line-height: 40px;
+    height: 250px;
     padding: 12px 8px;
 }
+
+#photo {
+  border-radius:50%;
+}
+
 #resulttext.rtl {
     direction: rtl;
     text-align: right;
@@ -159,6 +165,10 @@ body {
     display: none !important;
 }
 
+.counter {
+    text-align: right;
+}
+
 
 
 
@@ -187,7 +197,7 @@ body {
 #username {
     line-height: 26px;
     font-weight: 600;
-    font-size: 1.1em;
+    font-size: 1.5em;
     margin-right: 8px;
 }
 .main-toolbar .synchro-state {
@@ -301,4 +311,9 @@ ul {
     clear: both;
     background-color: silver;
     padding: 20px;
+}
+#counterBloc{
+    clear: both;
+    background-color: silver;
+    padding-top: 20px;
 }
