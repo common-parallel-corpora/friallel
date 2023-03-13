@@ -26,6 +26,10 @@ deploy-dev-functions:
 	firebase use fs-2022-003-mtannotation-dev
 	firebase deploy --only functions
 
+export-prod-indexes:
+	firebase firestore:indexes
+
+	
 deploy-dev-indexes:
 	firebase use dev
 	firebase deploy --only firestore:indexes
