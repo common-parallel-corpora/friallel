@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 import firebase_utils
 from pprint import pprint
-import itertools
+from pprint import pprint
 
 
 def get_collection_name(dataset_name):
@@ -35,6 +35,7 @@ def generate_completed_tasks(fs_client, users, dataset_name):
             "verification_level": task_data.get('verification_level', None),
             "translated_sentence": task_data['translated_sentence'],
             "target_lang": task_data['target_lang'],
+            "updated_date": task_data["updated_date"],
             "user": user
         }
 
@@ -77,11 +78,22 @@ def main(args):
     }
 
     for ref_lang in args.ref_langs:
-        csv_fielf_extractors[ref_lang] = lambda sid, refs, tasks: single_or_blank([t['translation'] for t in refs['translations'] if t['lang'] == ref_lang])
+        csv_fielf_extractors[ref_lang] = lambda sid, refs, tasks, ref_lang=ref_lang: single_or_blank([t['translation'] for t in refs['translations'] if t['lang'] == ref_lang])
 
     csv_fielf_extractors[f"{args.target_lang}__translation"] = lambda sid, refs, tasks: single_or_blank([t['translated_sentence'] for t in tasks if t['task_type'] == 'translation'])
+    csv_fielf_extractors[f"{args.target_lang}__translator"] = lambda sid, refs, tasks: single_or_blank([t['user']['email'] for t in tasks if t['task_type'] == 'translation'])
+
     for l in args.verification_levels:
-        csv_fielf_extractors[f"{args.target_lang}__verification_{l}"] = lambda sid, refs, tasks: single_or_blank([t['translated_sentence'] for t in tasks if t['task_type'] == 'verification' and t['verification_level']==l])
+        csv_fielf_extractors[f"{args.target_lang}__verification_{l}"] = \
+            lambda sid, refs, tasks, l=l: \
+                single_or_blank([t['translated_sentence'] for t in tasks if t['task_type'] == 'verification' and t['verification_level']==l])
+        csv_fielf_extractors[f"{args.target_lang}__verifier_{l}"] = \
+            lambda sid, refs, tasks, l=l: \
+                single_or_blank([t['user']['email'] for t in tasks if t['task_type'] == 'verification' and t['verification_level']==l])
+        
+    csv_fielf_extractors[f"{args.target_lang}__final"] = \
+            lambda sid, refs, tasks: \
+                sorted([t for t in tasks if t['task_type'] in {'translation', 'verification'}], key=lambda x: x['updated_date'])[-1]['translated_sentence']
 
 
     csv_field_names = list(csv_fielf_extractors.keys())
@@ -93,6 +105,7 @@ def main(args):
         for field_name in csv_field_names:
             row[field_name] = csv_fielf_extractors[field_name](sid, reference_sentences_by_sid[sid], completed_tasks_by_sid[sid])
         csv_writer.writerow(row)
+        
         
 
 
