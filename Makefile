@@ -289,3 +289,32 @@ load-nllb-seed:
 		--env dev --dataset-root-dir data/Multitext-NLLB-Seed/multitext/ \
 		--dataset-name nllb-seed-bam \
 		--batch-size 200
+
+
+## Export Data
+data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
+	mkdir -p data/exports/
+	python scripts/export_dataset.py \
+		--dataset-name flores-dev --env prod \
+		--ref-langs eng_Latn bam_Latn ary_Arab arz_Arab \
+		> data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+
+data/exports/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
+	mkdir -p data/exports/
+	python scripts/export_dataset.py \
+		--dataset-name flores-devtest --env prod \
+		--ref-langs eng_Latn bam_Latn ary_Arab arz_Arab \
+		> data/exports/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+
+data/exports/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
+	mkdir -p data/exports/
+	python scripts/export_dataset.py \
+		--dataset-name nllb-seed-bam --env prod \
+		--ref-langs eng_Latn bam_Latn ary_Arab arz_Arab \
+		> data/exports/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+
+export-data: \
+	data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
+	data/exports/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
+	data/exports/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+
