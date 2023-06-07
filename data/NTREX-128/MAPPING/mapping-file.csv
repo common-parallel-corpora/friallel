@@ -1,4 +1,4 @@
-newstest2019-ref-2.spa.txt,spa,Latn,spa_Latn
+orig-fname,lang_code,writing_system_code,combined_code
 newstest2019-ref.afr.txt,afr,Latn,afr_Latn
 newstest2019-ref.amh.txt,amh,Ethi,amh_Ethi
 newstest2019-ref.arb.txt,arb,Arab,arb_Arab
