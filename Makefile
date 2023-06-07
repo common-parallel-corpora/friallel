@@ -136,11 +136,6 @@ match-nllb-lines:
 		--output-files data/Multitext-NLLB-Seed/order_files/reference_ace_Arab-eng_Latn.order.txt data/Multitext-NLLB-Seed/order_files/ace_Arab-eng_Latn.order.txt
 
 
-target:
-	for number in 1 2 3 4 ; do \
-		echo $$number ; \
-	done
-
 generate-nllb-alignment-command-lines:
 	for l in data/NLLB-Seed/* ; do \
 		echo "python scripts/match_file_lines.py data/Multitext-NLLB-Seed/eng_Latn $${l}/eng_Latn --output-files data/Multitext-NLLB-Seed/order_files/reference_`basename $$l`.order.txt data/Multitext-NLLB-Seed/order_files/`basename $$l`.order.txt"; \
@@ -290,6 +285,29 @@ load-nllb-seed:
 		--dataset-name nllb-seed-bam \
 		--batch-size 200
 
+data/NTREX-128/preprocessed:
+	python scripts/preprocess-ntrex-128.py \
+		--input-dir data/NTREX-128/ \
+		--mapping-file data/NTREX-128/mapping/mapping-file.csv \
+		--output-dir data/NTREX-128/preprocessed
+
+load-ntrex-128:
+	python scripts/load_dataset.py  \
+		--env dev \
+		--dataset-root-dir data/NTREX-128/preprocessed \
+		--dataset-name ntrex-128 \
+		--batch-size 100
+
+
+create-translation-workflows-nllb-ntrex-128:
+	python scripts/create_translation_workflows.py  \
+		--env dev \
+		--dataset-names ntrex-128 \
+		--target-lang nqo_Nkoo \
+		--workflow-name default-translation-workflow \
+		--initial-priority 20000 \
+		--batch-size 500
+
 
 ## Export Data
 data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
@@ -317,4 +335,3 @@ export-data: \
 	data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
 	data/exports/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
 	data/exports/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
-
