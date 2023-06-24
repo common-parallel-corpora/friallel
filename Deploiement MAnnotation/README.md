@@ -146,3 +146,48 @@ Une fois dans la paramètres
 scroller vers le bas jusqu'a la section Firebase config
 
 ## Vérification des installations
+
+__________________________
+
+## Envionrment de Dev et des sources 
+### Installer les outils necessaires
+- Télécharger et installer VSCode : https://code.visualstudio.com/
+- Télécharger et installer NodeJS (version ???) : https://nodejs.org/en/download
+- Installer Git : https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+- Configurer Git avec vos informations d'authentification 
+- Télécharger et installer Python (version 3.10): 
+
+### Recuperer et installer les sources  
+- Configurer l'espace de travail sur votre ordinateur
+- Se connecter sur Githut, utiliser le lien courant: "Missing Link"
+- Telecharger les sources sur le repertoire de travail: git clone "Missing link"
+- Ouvrir le repertoire du project dans VSCode et importer le projet
+- Installer les librairies de Python : 
+- Installer les dependances : npm install
+- Configurer le projet local au projet Firebase créé préalablement
+- Télécharger et installer la clé du projet Firebase (Ajouter une image)
+
+### Description des sources installées
+Le projet installé est divisé en 4 grands groupes:
+1.  Data: localisé dans le dossier "data/" à la racine du projet, data contient les données (datasets) à charger en base de données. On y restrouve des données pour: Flores-Dev, NLLB, NTREX 
+2. Scrips Python: localisé dans le dossier "scripts/" à la racine du projet, les scripts (Python) sert à transformer les datasets pour les charger en base dans la Firestore. Les scripts permettent aussi d'exporter les données et de genérer des rapports d'avancement sur les taches.
+3. Projet UI: localisé dans le dossier "data/" depuis la racine du projet, il s'agit de l'application front qui permet à l'utilisateur (traducteur ou verificateur) de se connecter et d'effecter ces taches en fonction de leur roles. Cette aplication sera hébergé directement sur Firebase
+4. Fonctions: localisé dans le dossier "./project-annotation-web-ui/functions" depuis la racine du projet
+5. La base de données: déployé grace à la firestore, sa création initiale ne require aucune entrée d'enregistrement. Les données sont enregistrées progressivement grace l'upload des datasets, l'activité des utilisateurs sur l'interface web, ainsi que les fonctions cloud qui tournent en background.
+
+## Deploiement sur l'environnement
+### Context
+Ajouter du contenu ...........
+
+### 1. Preparation et chargement des données
+Ajouter du contenu ...........
+
+### 2. Mise à jour des indexes et regles Firebase
+Ajouter du contenu ...........
+
+### 3. Deploiment des fonctions
+Ajouter du contenu ...........
+
+### 4. Deploiment du projet
+Ajouter du contenu ...........
+
