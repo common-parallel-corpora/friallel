@@ -13,75 +13,81 @@ Go to Firebase console using the following instructions:
 
 This will take you to the project dashboard.
 
-### Création du projet
+### Firebase Project Setup
 Create a new project 
 
 <img src="Images/FR/003.png" width="256"/>
 
-1. Donner un nom au projet
-2. Decider de l'utilisation de Google Analytics (Optionnel pour le projet) 
-3. Valider
+1. Name your project
+2. Decide whether you would like to use Google Analytics (Not required for this project) 
+3. Submit
 
-Après validation votre projet est créer et prêt pour utilisation. Cliquer sur continuer. Firebase ouvre par defaut votre projet.
+After the submition, your project will be create and ready to use. Then click on continue, Firebase will open your project by default.
 
-### Création de l'application WEB
+### Web Application creation
 
-1. Creer une application via le bouton
+1. Create a web application using the button below
 
 <img src="Images/FR/004.jpeg" width="256"/>
 
-2. Donner un nom à l'application (Exp : appli-test), et enregistrer l'applicaion
+2. Name the new application (e.g.: appli-test), and save it.
 
-Firebase vous propose d'ajouter le SDK firabase (ajouter Firebase à votre application). Ce qui vous interesse c'est la configuration firebase.
+Firebase will offer to add their SDK (add it to your app). What you need here is firebase configuration.
 
 <img src="Images/FR/005.jpeg" width="256"/>
 
-Acceder à la console via le bouton proposé.
+Go to the console using the button below.
 
-### Installation des dépendances
+### Installer Firebase Products
 
-Acceder à toutes les dépendances via le bouton acceder à tous les produits 
+You can access other Firebase products using the button "All products". 
 
 <img src="Images/FR/006.jpeg" width="256"/>
 
-Ensuite installer les produits encadrés qui sont : 
+Then install the listed products below:
+- Authentication
+- Cloud Firestore
+- Realtime Database
+- Hosting
+- Functions
 
 <img src="Images/FR/007.jpeg" width="256"/>
 
 #### Authentication
 
-Cliquer sur commencer
+Click on the start button
 
 <img src="Images/FR/008.jpeg" width="256"/>
 
-Il vous est proposé un ensemble de moyen de conncetion, nous vous recommandons d'utiliser google comme sur l'image 009;
-Configurer google:
+You will be proposed a different type of authentication methods, you will have to use Google for this application - See the image below:
+
+Configure Google:
 
 <img src="Images/FR/010.jpeg" width="256"/>
 
-1. Activer l'option
-2. Configurer une adresse d'assistance
-3. Valider 
+1. Enable Google feature
+2. Configure an email address for support
+3. Submit
 
-Si tout se passe bien vous devez avoir ce résultat
+After submition, you should see the following result (see image)
 
 <img src="Images/FR/011.jpeg" width="256"/>
 
 #### Cloud Firestore
 
-Cliquer sur créer une base de données
+Click on create a new database 
 
 <img src="Images/FR/012.jpeg" width="256"/>
 
-Sur la page de configuration, sélectionner le mode production puis cliquer sur suivant.
+Next select the type of use you have for this database, Production or Test:
 
 <img src="Images/FR/013.jpeg" width="256"/>
 
-Ensuite sélectionner l'emplacement de stockage de vos données (014) puis activer la base de données.
+Then select the data storage location (014) and start the database
 
 <img src="Images/FR/014.jpeg" width="256"/>
 
-Si tout se passe bien vous devez avoir ce résultat 
+After submition, you should see the following result (see image)
 
 <img src="Images/FR/015.jpeg" width="256"/>
 
