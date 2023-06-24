@@ -1,20 +1,20 @@
 E# Deploiement Read Me
-## Configuration Firebase
+## Firebase Configuration
 
-Aller sur https://firebase.google.com/
+Go to https://firebase.google.com/
 
-Si vous n'avez pas de compte, créer en un, puis connectez vous.
+If you do not have a google account, please registrer, and then sign in.
 
 <img src="Images/FR/001.png" width="256"/>
 
-Aller dans la console firebase via l'invite suivante:
+Go to Firebase console using the following instructions:
 
 <img src="Images/FR/002.png" width="256"/>
 
-Vous arrivez sur la page des projets.
+This will take you to the project dashboard.
 
 ### Création du projet
-Creez un nouveau projet 
+Create a new project 
 
 <img src="Images/FR/003.png" width="256"/>
 
