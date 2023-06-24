@@ -158,14 +158,35 @@ __________________________
 - Télécharger et installer Python (version 3.10): 
 
 ### Recuperer et installer les sources  
-- Configurer l'espace de travail sur votre ordinateur
-- Se connecter sur Githut, utiliser le lien courant: "Missing Link"
-- Telecharger les sources sur le repertoire de travail: git clone "Missing link"
-- Ouvrir le repertoire du project dans VSCode et importer le projet
-- Installer les librairies de Python : 
-- Installer les dependances : npm install
-- Configurer le projet local au projet Firebase créé préalablement
-- Télécharger et installer la clé du projet Firebase (Ajouter une image)
+Configurer l'espace de travail sur votre ordinateur
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+Se connecter sur Githut, utiliser le lien courant: "Missing Link"
+Telecharger les sources sur le repertoire de travail: git clone "Missing link"
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+Ouvrir le repertoire du project dans VSCode et importer le projet
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+Installer les librairies de Python : 
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+Installer les dependances : npm install
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+Configurer le projet local au projet Firebase créé préalablement
+
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+Télécharger et installer la clé du projet Firebase (Ajouter une image)
+
+<img src="Images/missing-image.jpg" width="256"/>
 
 ### Description des sources installées
 Le projet installé est divisé en 4 grands groupes:

@@ -141,7 +141,7 @@ Acceder à l'application  via le raccourcie
 
 <img src="Images/FR/025.jpeg" width="256"/>
 
-Acceder aux paramètres de l'application depuis le raccourcie
+Acceder aux paramètres de l'application depuis le raccourci
 
 <img src="Images/FR/026.jpeg" width="256"/>
 
