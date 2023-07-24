@@ -198,10 +198,42 @@ Le projet installé est divisé en 4 grands groupes:
 
 ## Deploiement sur l'environnement
 ### Context
-Ajouter du contenu ...........
+Le deploiement des differents composants de l'application requiert un ordre precis et des prerequis.
+
+Les pré-requis sont : 
+- La ou les dataset(s): le dictionnaire de données à inserer 
+- La clé token du projet firebase telechargé: utilisé par les scripts Python pour preparer et integrer les datasets à la Firestore. Elle est declarée dans le code comme suit : key_name = "keys/fbServiceAccountKey-" + env + ".json" (env = "dev" or "prod")
 
 ### 1. Preparation et chargement des données
-Ajouter du contenu ...........
+La preparation des données peut etre une etape obligatoire en fonction de la structure de la dataset à intégrer. Cette application a été developpé en utilisant la structure de la dataset de flores : 
+- un dossier contenant un sous dossier avec les fichers contenant les phrase par langue
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+#### 1.1. Chargement des données 
+Nous allons utiliser les scripts python pour l'insertion : 
+- Syntaxe: python scripts/load_dataset.py --env "ENV_NAMLE" --dataset-root-dir "DATASET_FILES_PATH"  --dataset-name "DATASET_NAME" --batch-size "BATCH_SIZE"
+- Example: python scripts/load_dataset.py --env dev 	--dataset-root-dir data/flores200_dataset/dev  --dataset-name flores-dev -- batch-size 100
+
+BATCH_SIZE correspond pour au nombre de transactions à faire en meme temps. Ceci permet de reduire la durée d'exécution, mais il faut que ça soit inférieure ou égale à 100.
+
+<img src="Images/missing-image.jpg" width="256"/>
+
+#### 1.2. Preparation des données: 
+Les datasets NTREX et NLLB ont necessité un réalignment avec la structure la dataset flores avant d'inserer la dataset dans la firestore. 
+
+Pour NLLB, la préparation des données exigent d'executer les lignes générées par le script ci-dessous: 
+generate-nllb-alignment-command-lines:
+	for l in data/NLLB-Seed/* ; do \
+		echo "python scripts/match_file_lines.py data/Multitext-NLLB-Seed/eng_Latn $${l}/eng_Latn --output-files data/Multitext-NLLB-Seed/order_files/reference_`basename $$l`.order.txt data/Multitext-NLLB-Seed/order_files/`basename $$l`.order.txt"; \
+		for lang_file in $$l/* ; do \
+			echo "python scripts/sort_file.py --input-file $${lang_file} --order-file data/Multitext-NLLB-Seed/order_files/`basename $$l`.order.txt --output-file data/Multitext-NLLB-Seed/re_ordered/`basename $$l`/`basename $$lang_file`"; \
+		done; \
+	done
+
+Pour NTREX, il faut créer un fichier de mapping et exécuter la commande suivante:
+- Syntaxe: python scripts/preprocess-ntrex-128.py --input-dir "CHEMIN_FICHIERS_DONNEES" --mapping-file "FICHIER_MAPPING" \ --output-dir "REPORTOIRE_EXPORT_DONNEES"
+- python scripts/preprocess-ntrex-128.py --input-dir data/NTREX-128/ --mapping-file data/NTREX-128/mapping/mapping-file.csv \ --output-dir data/NTREX-128/preprocessed
 
 ### 2. Mise à jour des indexes et regles Firebase
 Ajouter du contenu ...........
