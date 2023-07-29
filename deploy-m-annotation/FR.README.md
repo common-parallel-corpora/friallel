@@ -202,7 +202,10 @@ Le deploiement des differents composants de l'application requiert un ordre prec
 
 Les pré-requis sont : 
 - La ou les dataset(s): le dictionnaire de données à inserer 
-- La clé token du projet firebase telechargé: utilisé par les scripts Python pour preparer et integrer les datasets à la Firestore. Elle est declarée dans le code comme suit : key_name = "keys/fbServiceAccountKey-" + env + ".json" (env = "dev" or "prod")
+- La clé token du projet firebase telechargé: utilisé par les scripts Python pour preparer et integrer les datasets à la Firestore. Elle est declarée dans le code comme suit : 
+#
+	key_name = "keys/fbServiceAccountKey-" + env + ".json" (env = "dev" or "prod")
+#
 
 #### Les étapes suivantes seront à effectuer dans un terminal. 
 
@@ -239,7 +242,7 @@ Pour NLLB, la préparation des données exigent d'executer les lignes générée
 		echo "python scripts/match_file_lines.py data/Multitext-NLLB-Seed/eng_Latn $${l}/eng_Latn --output-files data/Multitext-NLLB-Seed/order_files/reference_`basename $$l`.order.txt data/Multitext-NLLB-Seed/order_files/`basename $$l`.order.txt"; \
 		for lang_file in $$l/* ; do \
 			echo "python scripts/sort_file.py --input-file $${lang_file} --order-file data/Multitext-NLLB-Seed/order_files/`basename $$l`.order.txt --output-file data/Multitext-NLLB-Seed/re_ordered/`basename $$l`/`basename $$lang_file`"; \
-		done; \*
+		done; \
 	done; \
 #
 Pour NTREX, il faut créer un fichier de mapping et exécuter la commande suivante:
@@ -277,5 +280,10 @@ La dernière étape consiste à deployer l'application web. Pour le faire, il fa
 
 ## Informations utiles 
 
-Ajouter les informations utiles 
+Quelques commandes qui peuvent servir : 
 
+#
+	- Start firebase emulartor : firebase emulators:start 
+	- Install Python packages : pip install -r requirements.txt
+	- Export firebase indexes : firebase firestore:indexes 
+#
