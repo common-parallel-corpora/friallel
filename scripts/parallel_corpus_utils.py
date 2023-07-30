@@ -1,5 +1,5 @@
 def generate_file_lines(fpath):
-    with open(fpath) as f:
+    with open(fpath, encoding="utf8") as f:
         line = f.readline()
         while line:
             yield line
