@@ -172,7 +172,7 @@ onAuthStateChanged(auth, (user) => {
   currentUser = user;
   saveUser(currentUser);
   $("#username").html(currentUser.displayName);
-  $("#photo").attr("src", currentUser.photoURL);
+  $("#photo").attr("src", currentUser.photoURL ? currentUser.photoURL : "imgs/user.png");
   
   const docRef = doc(firestore, CONFIG_COLLECTION_NAME, CONFIG_LANGUAGES_DOCUMENT);
   const docSnap = getDoc(docRef).then((doc)=>{
