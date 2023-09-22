@@ -58,6 +58,14 @@ create-translation-workflows-fria-dataset-01:
 		--initial-priority 1000
 
 
+create-translation-workflows-flores-dev-adlam:
+	python scripts/create_translation_workflows.py  \
+		--env dev \
+		--dataset-names flores-dev \
+		--target-lang ful_Adlm \
+		--workflow-name default-translation-workflow \
+		--initial-priority 1000
+
 
 
 create-translation-workflows-flores-dev:
@@ -292,29 +300,68 @@ load-nllb-seed:
 
 
 ## Export Data
-data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
+data/exports/flores/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
 	mkdir -p data/exports/
 	python scripts/export_dataset.py \
 		--dataset-name flores-dev --env prod \
 		--ref-langs eng_Latn bam_Latn ary_Arab arz_Arab \
-		> data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+		> data/exports/flores/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
 
-data/exports/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
+data/exports/flores/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
 	mkdir -p data/exports/
 	python scripts/export_dataset.py \
 		--dataset-name flores-devtest --env prod \
 		--ref-langs eng_Latn bam_Latn ary_Arab arz_Arab \
-		> data/exports/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+		> data/exports/flores/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
 
-data/exports/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
+data/exports/multitext-nllb-seed/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
 	mkdir -p data/exports/
 	python scripts/export_dataset.py \
 		--dataset-name nllb-seed-bam --env prod \
 		--ref-langs eng_Latn bam_Latn ary_Arab arz_Arab \
-		> data/exports/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+		> data/exports/multitext-nllb-seed/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+
+data/exports/ntrex-128/ntrex-128__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv:
+	mkdir -p data/exports/ntrex-128
+	python scripts/export_dataset.py \
+		--dataset-name ntrex-128 --env prod \
+		--ref-langs eng_Latn bam_Latn ary_Arab arz_Arab \
+		> data/exports/ntrex-128/ntrex-128__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
 
 export-data: \
-	data/exports/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
-	data/exports/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
-	data/exports/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
+	data/exports/flores/flores-dev__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
+	data/exports/flores/flores-devtest__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv \
+	data/exports/multitext-nllb-seed/nllb-seed__eng_Latn__bam_Latn__ary_Arab__arz_Arab__nqo_Nkoo.csv
 
+
+# Users
+# 4eDB45vdvvdzUK3BFOCSpoVYas03 babadiane2023@gmail.com
+# GyN0vJHJ4teQahWlFy8uIigLM5k2 cissekalinko2023@gmail.com
+# kYa6BAz7SFhjxGLYV2Z1tgVfWSb2 solofarabado@gmail.com
+# ucSTXrOw5DZpa7YMo8mBLjsFfws2 babamamadidiane@gmail.com
+
+data/exports/flores/nqo_Nkoo.dev:
+	mkdir -p data/exports/flores/
+	python scripts/export_lang_file.py \
+		--dataset-name flores-dev --env prod \
+		--target-lang nqo_Nkoo \
+		> data/exports/flores/nqo_Nkoo.dev
+
+data/exports/flores/nqo_Nkoo.devtest:
+	mkdir -p data/exports/flores/
+	python scripts/export_lang_file.py \
+		--dataset-name flores-devtest --env prod \
+		--target-lang nqo_Nkoo \
+		> data/exports/flores/nqo_Nkoo.devtest
+
+data/exports/multitext-nllb-seed/nqo_Nkoo:
+	mkdir -p data/exports/multitext-nllb-seed/
+	python scripts/export_lang_file.py \
+		--dataset-name nllb-seed-bam --env prod \
+		--target-lang nqo_Nkoo \
+		> data/exports/multitext-nllb-seed/nqo_Nkoo
+
+nqo-flores: \
+	data/exports/flores/nqo_Nkoo.dev \
+	data/exports/flores/nqo_Nkoo.devtest \
+	data/exports/multitext-nllb-seed/nqo_Nkoo 
