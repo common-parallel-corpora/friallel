@@ -169,12 +169,28 @@ async function getActiveTranslatorsAndVerifiers() {
   return activeUsers.sort(() => (Math.random() > .5) ? 1 : -1);
 }
 
+/**
+ * Returns a boolean true if there are still remaining available tasks
+ * @return {boolean} the array of active users
+ */
+async function isAvailableFutureTasks() {
+  let availableTaskCount = 0;
+  availableTaskCount = await db.collection(annotationTaskCollectionName).where(
+      "status", "in", [constantUnassigned]
+  ).count();
+  return availableTaskCount == 0 ? false : true;
+}
+
 
 /**
  * Assign translation tasks to all active translators. increase user workloads to their max
  * @return {Promise} the workload assignment task
  */
 async function assignAnnotationTasks() {
+  // Check if there are actives tasks to assign
+  if (isAvailableFutureTasks() == false) {
+    return;
+  }
   // Retrieve All actives users with buckets not full
   const activeUsers = await getActiveTranslatorsAndVerifiers();
   console.log(`List of active Users (translator and Verifier) : ${activeUsers}`);
