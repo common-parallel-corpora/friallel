@@ -177,7 +177,7 @@ async function isAvailableFutureTasks() {
   let availableTaskCount = 0;
   availableTaskCount = await db.collection(annotationTaskCollectionName).where(
       "status", "in", [constantUnassigned]
-  ).count();
+  ).count().get();
   return availableTaskCount == 0 ? false : true;
 }
 
@@ -189,6 +189,7 @@ async function isAvailableFutureTasks() {
 async function assignAnnotationTasks() {
   // Check if there are actives tasks to assign
   if (isAvailableFutureTasks() == false) {
+    console.log("No Available Tasks to Assign - Stopping now!");
     return;
   }
   // Retrieve All actives users with buckets not full
