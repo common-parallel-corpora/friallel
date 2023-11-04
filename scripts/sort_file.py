@@ -12,13 +12,13 @@ def main(args):
     input_lines = []
     output_orders = []
 
-    with open(args.input_file) as f:
+    with open(args.input_file, encoding="utf8") as f:
         line = f.readline()
         while line:
             input_lines.append(line)
             line = f.readline()
 
-    with open(args.order_file) as f:
+    with open(args.order_file, encoding="utf8") as f:
         line = f.readline()
         while line:
             output_orders.append(int(line))
@@ -27,7 +27,7 @@ def main(args):
     print(f"read {len(output_orders)} order lines")
 
     Path(args.output_file).parent.mkdir(exist_ok=True, parents=True)
-    with open(args.output_file, "w") as of:
+    with open(args.output_file, "w", encoding="utf8") as of:
         for ix in output_orders:
             of.write(input_lines[ix])
     print("done")
