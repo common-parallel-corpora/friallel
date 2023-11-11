@@ -3,6 +3,9 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import * as env from "../environment/environment.js";
 
+//import firebase from 'firebase/compat/app';
+//import * as firebaseui from 'firebaseui';
+//import 'firebaseui/dist/firebaseui.css';
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 
@@ -34,10 +37,19 @@ const app = firebase.initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 
 var uiConfig = {
-    signInSuccessUrl: "../",
+    signInSuccessUrl: "../index.html",
     signInOptions: [
       // Leave the lines as is for the providers you want to offer your users.
-      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+      {
+        // Google provider must be enabled in Firebase Console to support one-tap
+        // sign-up.
+        provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        // Required to enable ID token credentials for this provider.
+        // This can be obtained from the Credentials page of the Google APIs
+        // console. Use the same OAuth client ID used for the Google provider
+        // configured with GCIP or Firebase Auth.
+        clientId: '1085169598448-f2i3nu7qepcrjgv97hos8qaafjc3f8fm.apps.googleusercontent.com'
+      },
       firebase.auth.EmailAuthProvider.PROVIDER_ID
     ],
     // tosUrl and privacyPolicyUrl accept either url string or a callback
@@ -49,13 +61,14 @@ var uiConfig = {
       window.location.assign("policy.html");
     }
 };
-  
+
 // Initialize the FirebaseUI Widget using Firebase.
 var ui = new firebaseui.auth.AuthUI(firebase.auth());
 // The start method will wait until the DOM is loaded.
-ui.start("#firebaseui-auth-container", uiConfig);
-const auth = getAuth();
-signInWithEmailAndPassword(auth, email, password)
+ui.start('#firebaseui-auth-container', uiConfig);
+  
+//const auth = getAuth();
+/*signInWithEmailAndPassword(auth, email, password)
   .then((userCredential) => {
     // Signed in 
     const user = userCredential.user;
@@ -66,4 +79,4 @@ signInWithEmailAndPassword(auth, email, password)
     const errorCode = error.code;
     const errorMessage = error.message;
     console.log("error");
-  });
+  });*/

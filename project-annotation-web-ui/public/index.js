@@ -37,6 +37,32 @@ const firebaseConfig = (env.prod == true) ? {
     measurementId: "G-TLK38CCN52"
 };
 
+window.addEventListener('load', function() {
+  firebase.auth().onAuthStateChanged((user) => {
+    if(!user){
+      // User is signed out.
+      alert("Debut de redirection");
+      redirectToLogin()
+      return;
+    }
+    currentUser = user;
+    saveUser(currentUser);
+    $("#username").html(currentUser.displayName);
+    $("#photo").attr("src", currentUser.photoURL);
+    
+    const docRef = doc(firestore, CONFIG_COLLECTION_NAME, CONFIG_LANGUAGES_DOCUMENT);
+    const docSnap = getDoc(docRef).then((doc)=>{
+      if(doc.exists()){
+        languageConfiguation = doc.data();
+      }
+    });
+  }, (error) => {
+    console.log("XXX : erreur recu : ", error);
+  }, 
+  () => {
+    console.log("XXX : fin de l'execution");
+  });
+});
 console.log("cc:: env.prod : ", env.prod);
 console.log("cc:: config : ", firebaseConfig);
   
@@ -161,26 +187,9 @@ const showTabs = function() {
 
 // Mise à jour interface et redirection
 const redirectToLogin = function(){
-  window.location.href = 'login/login.html';
+  //window.location.href = 'login/login.html';
+  window.location.href = 'auth/auth.html';
 }
-onAuthStateChanged(auth, (user) => {
-  if(!user){
-    // User is signed out.
-    redirectToLogin()
-    return;
-  }
-  currentUser = user;
-  saveUser(currentUser);
-  $("#username").html(currentUser.displayName);
-  $("#photo").attr("src", currentUser.photoURL ? currentUser.photoURL : "imgs/user.png");
-  
-  const docRef = doc(firestore, CONFIG_COLLECTION_NAME, CONFIG_LANGUAGES_DOCUMENT);
-  const docSnap = getDoc(docRef).then((doc)=>{
-    if(doc.exists()){
-      languageConfiguation = doc.data();
-    }
-  });
-});
 
 async function getCompletedTasks(type) {
   const query_ = query(
