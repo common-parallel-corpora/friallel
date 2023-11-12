@@ -1,45 +1,15 @@
-# fs-2022-003-mtannotation
+# Fria||el: Parallel text curation software system
+<img src="docs/img/friallel.jpg" />
+
+Fria||el  is a collaborative parallel text curation software system that tracks individual segments through a translation and copyedit workflow. Each segment is translated by one translator, and subsequently sequentially copyedited by other translators. Fria||el allows translators to simultaneously inspect variants of the source segment in multiple languages. This results in segments translated and copyedited in the context of different subsets of source languages.
+In addition to the final parallel corpus, Fria||el also yields copyedit logs, which could be valuable in various modeling scenarios.
 
 
-# Prepare data
-```
-make data/flores200_dataset
-```
-
-# Setup Firebase Service Account
-```
-https://console.firebase.google.com/u/0/project/_/settings/serviceaccounts/adminsdk
-```
-
-# Firebase instructions - Alias={dev, prod}
-```
-firebase use {alias}
-firebase use {project}
-firebase apps:list
-firebase projects:list
-firebase use --add
-firebase deploy -P {alias}
-firebase deploy --only firestore:indexes
-```
-
-# Firebase - How to export all current indexes
-```
-firebase firestore:indexes
-```
-
-# Deploy Annotation to Project
-- Setup firebase to production environment
-- Deploy UI
-- Deploy Indexes
-- Deploy Functions
-- Review Security Rules
-- Execute scripts & functions
-    - Load Dataset
-    - Create workflows
-    - Optional : Run workflow-manager to create annotation tasks (translations)
-    - Optionla : Import Offline translations 
-
-# Process de test : PS conserver l’index dans la traduction par soucis de traçabilités 
-
-https://docs.google.com/document/d/1_DSWB4sEAa5hQDEfnxq128vgKVgYFXRmVztWWC_uY4U/edit#
+# Deployment & Stup Instructions
+- Create firebase project and deploy web application [English](docs/001_webui_firebase.eng.md) [French](docs/001_webui_firebase.fra.md)
+- Deploy firebase indices [TODO]()
+- Deploy firebase functions [TODO]()
+- Adjust firebase security rules [TODO]()
+- Load Dataset [TODO]()
+- Create workflows [TODO]()
 
