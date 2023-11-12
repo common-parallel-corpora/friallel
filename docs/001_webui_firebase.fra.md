@@ -5,18 +5,18 @@ Aller sur https://firebase.google.com/
 
 Si vous n'avez pas de compte, créer en un, puis connectez vous.
 
-<img src="Images/FR/001.png" width="256"/>
+<img src="img/FR/001.png" width="256"/>
 
 Aller dans la console firebase via l'invite suivante:
 
-<img src="Images/FR/002.png" width="256"/>
+<img src="img/FR/002.png" width="256"/>
 
 Vous arrivez sur la page des projets.
 
 ### Création du projet
 Creez un nouveau projet 
 
-<img src="Images/FR/003.png" width="256"/>
+<img src="img/FR/003.png" width="256"/>
 
 1. Donner un nom au projet
 2. Decider de l'utilisation de Google Analytics (Optionnel pour le projet) 
@@ -28,13 +28,13 @@ Après validation votre projet est créer et prêt pour utilisation. Cliquer sur
 
 1. Creer une application via le bouton
 
-<img src="Images/FR/004.jpeg" width="256"/>
+<img src="img/FR/004.jpeg" width="256"/>
 
 2. Donner un nom à l'application (Exp : appli-test), et enregistrer l'applicaion
 
 Firebase vous propose d'ajouter le SDK firabase (ajouter Firebase à votre application). Ce qui vous interesse c'est la configuration firebase.
 
-<img src="Images/FR/005.jpeg" width="256"/>
+<img src="img/FR/005.jpeg" width="256"/>
 
 Acceder à la console via le bouton proposé.
 
@@ -42,22 +42,22 @@ Acceder à la console via le bouton proposé.
 
 Acceder à toutes les dépendances via le bouton acceder à tous les produits 
 
-<img src="Images/FR/006.jpeg" width="256"/>
+<img src="img/FR/006.jpeg" width="256"/>
 
 Ensuite installer les produits encadrés qui sont : 
 
-<img src="Images/FR/007.jpeg" width="256"/>
+<img src="img/FR/007.jpeg" width="256"/>
 
 #### Authentication
 
 Cliquer sur commencer
 
-<img src="Images/FR/008.jpeg" width="256"/>
+<img src="img/FR/008.jpeg" width="256"/>
 
 Il vous est proposé un ensemble de moyen de conncetion, nous vous recommandons d'utiliser google comme sur l'image 009;
 Configurer google:
 
-<img src="Images/FR/010.jpeg" width="256"/>
+<img src="img/FR/010.jpeg" width="256"/>
 
 1. Activer l'option
 2. Configurer une adresse d'assistance
@@ -65,63 +65,63 @@ Configurer google:
 
 Si tout se passe bien vous devez avoir ce résultat
 
-<img src="Images/FR/011.jpeg" width="256"/>
+<img src="img/FR/011.jpeg" width="256"/>
 
 #### Cloud Firestore
 
 Cliquer sur créer une base de données
 
-<img src="Images/FR/012.jpeg" width="256"/>
+<img src="img/FR/012.jpeg" width="256"/>
 
 Sur la page de configuration, sélectionner le mode production puis cliquer sur suivant.
 
-<img src="Images/FR/013.jpeg" width="256"/>
+<img src="img/FR/013.jpeg" width="256"/>
 
 Ensuite sélectionner l'emplacement de stockage de vos données (014) puis activer la base de données.
 
-<img src="Images/FR/014.jpeg" width="256"/>
+<img src="img/FR/014.jpeg" width="256"/>
 
 Si tout se passe bien vous devez avoir ce résultat 
 
-<img src="Images/FR/015.jpeg" width="256"/>
+<img src="img/FR/015.jpeg" width="256"/>
 
 #### Realtime database
 
 Cliquer sur créer une base de données
 
-<img src="Images/FR/016.jpeg" width="256"/>
+<img src="img/FR/016.jpeg" width="256"/>
 
 Sélectionner l'emplacement de stockage de vos données puis cliquer sur suivant
 
-<img src="Images/FR/017.jpeg" width="256"/>
+<img src="img/FR/017.jpeg" width="256"/>
 
 Selectionner le mode vérrouillé puis cliquer sur Activer
 
-<img src="Images/FR/018.jpeg" width="256"/>
+<img src="img/FR/018.jpeg" width="256"/>
 
 Si tout se passe bien dous devez avoir ce résultat
 
-<img src="Images/FR/019.jpeg" width="256"/>
+<img src="img/FR/019.jpeg" width="256"/>
 
 #### Hosting
 
 Cliquer sur Commencer
 
-<img src="Images/FR/020.jpeg" width="256"/>
+<img src="img/FR/020.jpeg" width="256"/>
 
 Les étapes suivantes vous indique la marche à suivre afin de pouvoir déployer votre application, les ligne de commande seront à executer pas à pas
 
-<img src="Images/FR/021.jpeg" width="256"/>
-<img src="Images/FR/022.jpeg" width="256"/>
-<img src="Images/FR/023.jpeg" width="256"/>
+<img src="img/FR/021.jpeg" width="256"/>
+<img src="img/FR/022.jpeg" width="256"/>
+<img src="img/FR/023.jpeg" width="256"/>
 
 A l'étape 3 cliquer sur acceder à la console
 
-<img src="Images/FR/024.jpeg" width="256"/>
+<img src="img/FR/024.jpeg" width="256"/>
 
 Si tout se passe bien vous devez avoir ce résultat 
 
-<img src="Images/FR/024.jpeg" width="256"/>
+<img src="img/FR/024.jpeg" width="256"/>
 
 ## Configuration du Client UI
 
@@ -133,15 +133,15 @@ Dépuis la console firebase, ouvrez votre projet
 
 Acceder à l'application  via le raccourcie
 
-<img src="Images/FR/025.jpeg" width="256"/>
+<img src="img/FR/025.jpeg" width="256"/>
 
 Acceder aux paramètres de l'application depuis le raccourci
 
-<img src="Images/FR/026.jpeg" width="256"/>
+<img src="img/FR/026.jpeg" width="256"/>
 
 Une fois dans la paramètres 
 
-<img src="Images/FR/027.jpeg" width="256"/>
+<img src="img/FR/027.jpeg" width="256"/>
 
 scroller vers le bas jusqu'a la section Firebase config
 
@@ -160,33 +160,33 @@ __________________________
 ### Recuperer et installer les sources  
 Configurer l'espace de travail sur votre ordinateur
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 Se connecter sur Githut, utiliser le lien courant: "Missing Link"
 Telecharger les sources sur le repertoire de travail: git clone "Missing link"
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 Ouvrir le repertoire du project dans VSCode et importer le projet
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 Installer les librairies de Python : 
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 Installer les dependances : npm install
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 Configurer le projet local au projet Firebase créé préalablement
 
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 Télécharger et installer la clé du projet Firebase (Ajouter une image)
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 ### Description des sources installées
 Le projet installé est divisé en 4 grands groupes:
@@ -215,7 +215,7 @@ La preparation des données peut etre une etape obligatoire en fonction de la st
 
 Etant donné qu'il va falloir utiliser les scripts python
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 #### 1.1. Chargement des données 
 Nous allons utiliser les scripts python pour l'insertion, il faut se mettre à la racine du projet : 
@@ -226,7 +226,7 @@ Nous allons utiliser les scripts python pour l'insertion, il faut se mettre à l
 
 BATCH_SIZE correspond pour au nombre de transactions à faire en meme temps. Ceci permet de reduire la durée d'exécution, mais il faut que ça soit inférieure ou égale à 100.
 
-<img src="Images/missing-image.jpg" width="256"/>
+<img src="img/missing-image.jpg" width="256"/>
 
 #### 1.2. Preparation des données: 
 Les datasets NTREX et NLLB ont necessité un réalignment avec la structure la dataset flores avant d'inserer la dataset dans la firestore. Il faut s'assurer que les commandes python sont activés dans le terminal.
