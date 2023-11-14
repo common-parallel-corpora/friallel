@@ -5,13 +5,19 @@ Fria||el  is a collaborative parallel text curation software system that tracks 
 In addition to the final parallel corpus, Fria||el also yields copyedit logs, which could be valuable in various modeling scenarios.
 
 
-# Deployment & Stup Instructions
-- Create firebase project and deploy web application [English](docs/001_webui_firebase.eng.md) [French](docs/001_webui_firebase.fra.md)
-- Deploy firebase indices [TODO]()
-- Deploy firebase functions [TODO]()
-- Adjust firebase security rules [TODO]()
-- Load Dataset [TODO]()
-- Create workflows [TODO]()
+# ℹ️ Documentation
+- Deploy Friallel
+    - Create firebase project and deploy web application [English](docs/001_webui_firebase.eng.md) [French](docs/001_webui_firebase.fra.md)
+    - Deploy firebase indices [TODO]()
+    - Deploy firebase functions [TODO]()
+    - Adjust firebase security rules [TODO]()
+    - Setup translator accounts [TODO]()
+- Use Friallel to extend a multilingual parallel corpus
+    - Import parallel corpus [TODO]()
+    - Create workflows [TODO]()
+    - Export accounting reports [TODO]()
+    - Export parallel corpus [TODO]()
+- More information in this paper: https://arxiv.org/pdf/2310.15612.pdf
 
 
 ## Cite this work
