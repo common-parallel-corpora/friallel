@@ -15,6 +15,6 @@ module.exports = {
     "quotes": ["error", "double"],
     "max-len": ["error", {"code": 160}],
     "comma-dangle": ["error", "never"],
-    "linebreak-style": ["error", "windows"]
+    "linebreak-style": ["error", "unix"]
   }
 };

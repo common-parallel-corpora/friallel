@@ -1,29 +1,32 @@
+PROD_PROJECT_NAME=soe-stanford-friallel-adlm
+DEV_PROJECT_NAME=soe-stanford-friallel-adlm-dev
+
 deploy-prod-ui:
 	echo "export const prod = true;" > ./public/environment/environment.js
-	firebase use fs-2022-003-mtannotation
+	firebase use $(PROD_PROJECT_NAME)
 	firebase deploy --only hosting
 
 deploy-dev-ui:
 	echo "export const prod = false;" > ./public/environment/environment.js
-	firebase use fs-2022-003-mtannotation-dev
+	firebase use $(DEV_PROJECT_NAME)
 	firebase deploy --only hosting
 
 deploy-prod-ui-windows:
 	echo export const prod = true; > ./public/environment/environment.js
-	firebase use fs-2022-003-mtannotation
+	firebase use $(PROD_PROJECT_NAME)
 	firebase deploy --only hosting
 
 deploy-dev-ui-windows:
 	echo export const prod = false; > ./public/environment/environment.js
-	firebase use fs-2022-003-mtannotation-dev
+	firebase use $(DEV_PROJECT_NAME)
 	firebase deploy --only hosting
 
 deploy-prod-functions:
-	firebase use fs-2022-003-mtannotation
+	firebase use $(PROD_PROJECT_NAME)
 	firebase deploy --only functions
 
 deploy-dev-functions:
-	firebase use fs-2022-003-mtannotation-dev
+	firebase use $(DEV_PROJECT_NAME)
 	firebase deploy --only functions
 
 export-prod-indexes:
@@ -31,11 +34,11 @@ export-prod-indexes:
 
 	
 deploy-dev-indexes:
-	firebase use dev
+	firebase use $(DEV_PROJECT_NAME)
 	firebase deploy --only firestore:indexes
 
 deploy-prod-indexes:
-	firebase use prod
+	firebase use $(PROD_PROJECT_NAME)
 	firebase deploy --only firestore:indexes
 
 start-dev-server:

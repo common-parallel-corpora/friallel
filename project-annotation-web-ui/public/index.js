@@ -5,6 +5,8 @@ import { doc, getDoc, updateDoc, Timestamp, getDocs, setDoc, getFirestore, enabl
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import * as env from "./environment/environment.js";
+import { firebaseConfig } from "./js/firebase_config.js";
+
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -17,16 +19,6 @@ $("#noTranslateFound").hide();
 $("#translatorTab").hide();
 $("#verifierTab").hide();
 
-
-// TO DO : To be replace by your Firebase configuration
-const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "t...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
-};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
